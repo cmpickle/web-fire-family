@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Xero67/web-fire-family/routes"
+	"./routes"
 )
 
 func main() {
