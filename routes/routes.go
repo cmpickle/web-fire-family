@@ -2,7 +2,6 @@ package routes
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -22,7 +21,7 @@ type Product struct {
 var products []Product
 
 // InitRoutes creates the web API routes and sets their event handler functions
-func InitRoutes() {
+func InitRoutes() http.Handler {
 	router := mux.NewRouter()
 	//This should bring a list of all the Products
 
@@ -39,7 +38,7 @@ func InitRoutes() {
 	router.HandleFunc("/product/delete/{id}", deleteProduct).Methods("DELETE")
 	//This allows us to set the quantity value of a product.
 	router.HandleFunc("/inventory/update/{id}/{quantity}", updateInventory).Methods("POST")
-	log.Fatal(http.ListenAndServe(":8000", router))
+	return router
 }
 
 // Returns all of the products stored in the database in JSON format
