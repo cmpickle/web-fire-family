@@ -35,7 +35,7 @@ func InitRoutes() {
 	// This should bring back a specific Product
 	router.HandleFunc("/product/{id}", getProduct).Methods("GET")
 	//This creates a new product using a Json String
-	router.HandleFunc("/product/Create", createProduct).Methods("POST")
+	router.HandleFunc("/product/create", createProduct).Methods("POST")
 	//This sets the product to inactive in the database
 	router.HandleFunc("/product/delete/{id}", deleteProduct).Methods("DELETE")
 	//This allows us to set the quantity value of a product.
