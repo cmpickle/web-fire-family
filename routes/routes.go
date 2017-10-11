@@ -57,7 +57,7 @@ func createProduct(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	var product Product
 	_ = json.NewDecoder(r.Body).Decode(&product)
-	product.ProductID = params["productid"]
+	product.ProductID = params["ProductID"]
 	products = append(products, product)
 	json.NewEncoder(w).Encode(products)
 
