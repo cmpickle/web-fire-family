@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"strconv"
 )
 
 type Product struct {
@@ -54,13 +53,9 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 
 // Creates a Product object from the passed in JSON Product and stores it in the database
 func createProduct(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
 	var product Product
 	_ = json.NewDecoder(r.Body).Decode(&product)
-	product.ProductID, _ = strconv.Atoi(params["productid"])
-	products = append(products, product)
-	json.NewEncoder(w).Encode(products)
-
+	Products = append(Products, product)
 }
 
 // Deletes the specified product from the database
