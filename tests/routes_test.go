@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/Xero67/web-fire-family/routes"
+	"../routes"
 )
 
 func TestGetProducts(t *testing.T) {
@@ -21,6 +21,12 @@ func TestGetProducts(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	routes.InitRoutes().ServeHTTP(w, req)
+
+	routes.Products = nil
+
+	routes.Products = append(routes.Products, routes.Product{ProductID: 1, ProductName: "Firefighter Wallet", InventoryScanningID: 1, Color: "Tan", Price: 30, Dimensions: "3 1/2\" tall and 4 1/2\" long", SKU: 1})
+	routes.Products = append(routes.Products, routes.Product{ProductID: 2, ProductName: "Firefighter Apron", InventoryScanningID: 2, Color: "Tan", Size: "One Size Fits All", Price: 29, Dimensions: "31\" tall and 26\" wide and ties around a waist up to 54\"", SKU: 2})
+	routes.Products = append(routes.Products, routes.Product{ProductID: 3, ProductName: "Firefighter Baby Outfit", InventoryScanningID: 3, Color: "Tan", Size: "Newborn", Price: 39.99, Dimensions: "Waist-14\", Length-10\"", SKU: 3})
 
 	// Check the status code is what we expect.
 	if status := w.Code; status != http.StatusOK {
