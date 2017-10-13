@@ -2,7 +2,9 @@ package routes
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -48,7 +50,31 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 
 // Returns a specific product from the database in JSON format
 func getProduct(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params["id"]
+	index := -1
+	for i, value := range Products {
+		productID, err := strconv.Atoi(id)
+		if err != nil {
+			log.Fatal(err)
+			json.NewEncoder(w).Encode("")
+		}
 
+		if productID > len(Products) || productID < 1 {
+			json.NewEncoder(w).Encode("")
+			return
+
+			// Would we rather return an empty JSON string for an invalid entry or throw an error?
+			// log.Fatal("Product does not exist.")
+		}
+
+		if value.ProductID == productID {
+			index = i
+		}
+
+		// TODO: Check that the product hasn't been deleted
+	}
+	json.NewEncoder(w).Encode(Products[index])
 }
 
 // Creates a Product object from the passed in JSON Product and stores it in the database
