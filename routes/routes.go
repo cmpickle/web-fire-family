@@ -36,10 +36,12 @@ func InitRoutes() http.Handler {
 	router.HandleFunc("/product/{id}", getProduct).Methods("GET")
 	//This creates a new product using a Json String
 	router.HandleFunc("/product/create", createProduct).Methods("POST")
+	//This updates a product using a Json String
+	router.HandleFunc("/product/update/{id}", updateProduct).Methods("PUT")
 	//This sets the product to inactive in the database
 	router.HandleFunc("/product/delete/{id}", deleteProduct).Methods("DELETE")
 	//This allows us to set the quantity value of a product.
-	router.HandleFunc("/inventory/update/{id}/{quantity}", updateInventory).Methods("POST")
+	router.HandleFunc("/inventory/update/{id}/{quantity}", updateInventory).Methods("PUT")
 	return router
 }
 
@@ -61,20 +63,21 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if productID < 1 {
-			json.NewEncoder(w).Encode("")
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("400 - Invalid product ID."))
 			return
-
-			// Would we rather return an empty JSON string for an invalid entry or throw an error?
-			// log.Fatal("Product does not exist.")
 		}
 
 		if value.ProductID == productID {
 			index = i
+			w.WriteHeader(http.StatusOK)
+			return
 		}
 	}
 
 	if index == -1 {
-		json.NewEncoder(w).Encode("")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Invalid product ID."))
 		return
 	}
 
@@ -92,26 +95,50 @@ func createProduct(w http.ResponseWriter, r *http.Request) {
 func deleteProduct(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
-	//index := -1
+
 	for i, value := range Products {
 		productID, err := strconv.Atoi(id)
-		if err != nil {
-			log.Fatal(err)
-			json.NewEncoder(w).Encode("")
-		}
-
-		if productID < 1 {
+		if err != nil || productID < 1 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("400 - Invalid product ID."))
 			return
-
-			// What do we return on a bad delete request?
-			// log.Fatal("Product does not exist.")
 		}
 
 		if value.ProductID == productID {
 			Products[i] = Products[len(Products)-1]
 			Products = Products[:len(Products)-1]
+			w.WriteHeader(http.StatusOK)
+			return
 		}
 	}
+	w.WriteHeader(http.StatusBadRequest)
+	w.Write([]byte("400 - Invalid product ID."))
+}
+
+// Updates the product
+func updateProduct(w http.ResponseWriter, r *http.Request) {
+	var product Product
+	_ = json.NewDecoder(r.Body).Decode(&product)
+
+	params := mux.Vars(r)
+	id := params["id"]
+
+	for i, value := range Products {
+		productID, err := strconv.Atoi(id)
+		if err != nil || productID < 1 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("400 - Invalid product ID."))
+			return
+		}
+
+		if value.ProductID == productID {
+			Products[i] = product
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+	}
+	w.WriteHeader(http.StatusBadRequest)
+	w.Write([]byte("400 - Invalid product ID."))
 }
 
 // Updates the inventory value for the inventory item
