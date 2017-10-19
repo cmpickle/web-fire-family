@@ -71,6 +71,7 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 		if value.ProductID == productID {
 			index = i
 			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(Products[index])
 			return
 		}
 	}
@@ -80,8 +81,6 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("400 - Invalid product ID."))
 		return
 	}
-
-	json.NewEncoder(w).Encode(Products[index])
 }
 
 // Creates a Product object from the passed in JSON Product and stores it in the database
