@@ -142,7 +142,7 @@ func TestCreateProduct(t *testing.T) {
 	data := []byte(`{"productid":4,"productname":"Firefighter Stuff","inventoryscanningid":1,"color":"Tan","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1}`)
 
 	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
-	req, err := http.NewRequest("POST", "/product/4", bytes.NewBuffer(data))
+	req, err := http.NewRequest("POST", "/product/create", bytes.NewBuffer(data))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -175,10 +175,10 @@ func TestCreateProduct(t *testing.T) {
 	}
 
 	// Check the response body is what we expect.
-	expected := `{"productid":1,"productname":"Firefighter Wallet","inventoryscanningid":1,"color":"Tan","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1}`
+	expected := `[{"productid":1,"productname":"Firefighter Wallet","inventoryscanningid":1,"color":"Tan","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1},{"productid":2,"productname":"Firefighter Apron","inventoryscanningid":2,"color":"Tan","size":"One Size Fits All","price":29,"dimensions":"31\" tall and 26\" wide and ties around a waist up to 54\"","sku":2},{"productid":3,"productname":"Firefighter Baby Outfit","inventoryscanningid":3,"color":"Tan","size":"Newborn","price":39.99,"dimensions":"Waist-14\", Length-10\"","sku":3},{"productid":4,"productname":"Firefighter Stuff","inventoryscanningid":1,"color":"Tan","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1}]`
 	equal, err := AreEqualJSON(w2.Body.String(), expected)
 	if !equal {
-		t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), expected)
+		t.Errorf("handler returned unexpected body: got %v want %v", w2.Body.String(), expected)
 	}
 
 }
