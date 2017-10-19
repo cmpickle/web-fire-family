@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/Xero67/web-fire-family/routes"
+	"./routes"
 )
 
 func main() {

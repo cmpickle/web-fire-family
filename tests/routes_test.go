@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/Xero67/web-fire-family/routes"
+	"../routes"
 )
 
 func TestGetProducts(t *testing.T) {
