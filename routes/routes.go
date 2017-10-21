@@ -9,7 +9,10 @@ import (
 	"github.com/gorilla/mux"
 
 	"database/sql"
-	"../models"
+	"fmt"
+
+	//Cannot get this import to work
+	//"../models"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -25,6 +28,19 @@ type Product struct {
 	SKU                 int     `json:"sku,omitempty"`
 }
 
+//Matches our product table
+type Productt struct {
+	ProductID           	int     `json:"productid,omitempty"`
+	ProductName         	string  `json:"productname,omitempty"`
+	NotificationQuantity	int 	`json:"notificationquantity, omitempty"`
+	Color               	string  `json:"color,omitempty"`
+	TrimColor				string	`json:"trimcolor,omitempty"`
+	Size                	string  `json:"size,omitempty"`
+	Price               	float32 `json:"price,omitempty"`
+	Dimensions          	string  `json:"dimensions,omitempty"`
+	SKU                 	int     `json:"sku,omitempty"`
+}
+
 
 
 var Products []Product
@@ -36,12 +52,16 @@ func InitRoutes() http.Handler {
 
 	//Trying DB things here
 	var err error
-	db, err = sql.Open("mysql", "fireadmin:FireFamily@1@165.227.17.104:3306/FireFamilyDB")
+	db, err = sql.Open("mysql", "fireadmin:FireFamily@1@tcp(165.227.17.104:3306)/Fire_Family")
 	if err != nil {
-		//error handling
+		//error handling here
+		fmt.Println("Conn")
+		fmt.Println(err)
 	}
 	if err = db.Ping(); err != nil {
-		//error handling
+		//error handling here
+		fmt.Println("Ping")
+		fmt.Println(err)
 	}
 	//This should bring a list of all the Products
 
@@ -71,19 +91,25 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.Query("SELECT * FROM Product")
 	if err != nil {
 		//Error handling
+		fmt.Println("1")
+		fmt.Println(err)
 	}
 	defer rows.Close()
-	prods := make([]*Product, 0)
+	prods := make([]*Productt, 0)
 	for rows.Next() {
-		p := new(Product)
-		err := rows.Scan(&p.ProductID, &p.ProductName, &p.Color, &p.Size, &p.SKU, &p.Dimensions, &p.Price)
+		p := new(Productt)
+		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU)
 		if err != nil {
 			//More error handling
+			fmt.Println("2")
+			fmt.Println(err)
 		}
 		prods = append(prods, p)
 	}
 	if err = rows.Err(); err != nil {
 		//Error handling
+		fmt.Println("3")
+		fmt.Println(err)
 	}
 	json.NewEncoder(w).Encode(prods)
 
