@@ -7,8 +7,13 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-)
 
+	"database/sql"
+	"../models"
+
+	_ "github.com/go-sql-driver/mysql"
+)
+//Doesn't match our product table as of 10/20
 type Product struct {
 	ProductID           int     `json:"productid,omitempty"`
 	ProductName         string  `json:"productname,omitempty"`
@@ -20,11 +25,24 @@ type Product struct {
 	SKU                 int     `json:"sku,omitempty"`
 }
 
+
+
 var Products []Product
+var db *sql.DB
 
 // InitRoutes creates the web API routes and sets their event handler functions
 func InitRoutes() http.Handler {
 	router := mux.NewRouter()
+
+	//Trying DB things here
+	var err error
+	db, err = sql.Open("mysql", "fireadmin:FireFamily@1@165.227.17.104:3306/FireFamilyDB")
+	if err != nil {
+		//error handling
+	}
+	if err = db.Ping(); err != nil {
+		//error handling
+	}
 	//This should bring a list of all the Products
 
 	Products = append(Products, Product{ProductID: 1, ProductName: "Firefighter Wallet", InventoryScanningID: 1, Color: "Tan", Price: 30, Dimensions: "3 1/2\" tall and 4 1/2\" long", SKU: 1})
@@ -42,12 +60,33 @@ func InitRoutes() http.Handler {
 	router.HandleFunc("/product/delete/{id}", deleteProduct).Methods("DELETE")
 	//This allows us to set the quantity value of a product.
 	router.HandleFunc("/inventory/update/{id}/{quantity}", updateInventory).Methods("PUT")
+
+
 	return router
 }
 
 // Returns all of the products stored in the database in JSON format
 func getProducts(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(Products)
+	//json.NewEncoder(w).Encode(Products)
+	rows, err := db.Query("SELECT * FROM Product")
+	if err != nil {
+		//Error handling
+	}
+	defer rows.Close()
+	prods := make([]*Product, 0)
+	for rows.Next() {
+		p := new(Product)
+		err := rows.Scan(&p.ProductID, &p.ProductName, &p.Color, &p.Size, &p.SKU, &p.Dimensions, &p.Price)
+		if err != nil {
+			//More error handling
+		}
+		prods = append(prods, p)
+	}
+	if err = rows.Err(); err != nil {
+		//Error handling
+	}
+	json.NewEncoder(w).Encode(prods)
+
 }
 
 // Returns a specific product from the database in JSON format
