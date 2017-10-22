@@ -40,6 +40,7 @@ type Productt struct {
 	Price               	float32 `json:"price,omitempty"`
 	Dimensions          	string  `json:"dimensions,omitempty"`
 	SKU                 	int     `json:"sku,omitempty"`
+	Deleted                 int     `json:"deleted,omitempty"`
 }
 
 
@@ -99,13 +100,15 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 	prods := make([]*Productt, 0)
 	for rows.Next() {
 		p := new(Productt)
-		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU)
+		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU, &p.Deleted)
 		if err != nil {
 			//More error handling
 			fmt.Println("2")
 			fmt.Println(err)
 		}
-		prods = append(prods, p)
+		if p.Deleted == 0 {
+			prods = append(prods, p)
+		}
 	}
 	if err = rows.Err(); err != nil {
 		//Error handling
@@ -140,13 +143,15 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 
 		p := new(Productt)
-		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU)
+		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU, &p.Deleted)
 		if err != nil {
 			//More error handling
 			fmt.Println("2")
 			fmt.Println(err)
 		}
-		prods = append(prods, p)
+		if p.Deleted == 0 {
+			prods = append(prods, p)
+		}
 		found = productID
 
 	}
@@ -188,6 +193,9 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(prods)
 }
 
+// Smart thing to do would be to check the DB for the item already being created first
+// As well as if that item was already deleted then just toggle it instead
+// Not needed tho, def an extra thing
 // Creates a Product object from the passed in JSON Product and stores it in the database
 func createProduct(w http.ResponseWriter, r *http.Request) {
 	var product Productt
@@ -243,8 +251,10 @@ func createProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 // Deletes the specified product from the database
+// If the route logic were seperate from the DB logic, we could just call a getproductbyID method that is used
+// by both
 func deleteProduct(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
+	/*params := mux.Vars(r)
 	id := params["id"]
 
 	for i, value := range Products {
@@ -263,7 +273,65 @@ func deleteProduct(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	w.WriteHeader(http.StatusBadRequest)
-	w.Write([]byte("400 - Invalid product ID."))
+	w.Write([]byte("400 - Invalid product ID."))*/
+
+	//new version
+	params := mux.Vars(r)
+	id := params["id"]
+	found := -1
+
+	productID, err := strconv.Atoi(id)
+	if  productID < 1 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Invalid product ID."))
+		return
+	}
+	rows, err := db.Query("SELECT * FROM Product WHERE ProductID = ?", id)
+	if err != nil {
+		//Error handling
+		fmt.Println("1")
+		fmt.Println(err)
+	}
+	defer rows.Close()
+	prods := make([]*Productt, 0)
+	for rows.Next() {
+
+		p := new(Productt)
+		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU, &p.Deleted)
+		if err != nil {
+			//More error handling
+			fmt.Println("2")
+			fmt.Println(err)
+		}
+		if p.Deleted == 0 {
+			prods = append(prods, p)
+		}
+		found = productID
+
+	}
+	if err = rows.Err(); err != nil {
+		//Error handling
+		fmt.Println("3")
+		fmt.Println(err)
+	}
+
+	if found == -1 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Invalid product ID."))
+		return
+	} else { //All deletion logic goes here because it confirms the find
+		prods[0].Deleted = 1;
+		stmt, err := db.Prepare("UPDATE Product SET Deleted = 1 WHERE ProductID = ?")
+		if err != nil {
+			fmt.Println(err)
+		}
+		_, errr := stmt.Exec(prods[0].ProductID)
+		if errr != nil {
+			fmt.Println(err)
+		}
+
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 // Updates the product

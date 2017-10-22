@@ -15,4 +15,5 @@ type Product struct {
 	Price               	float32 `json:"price,omitempty"`
 	Dimensions          	string  `json:"dimensions,omitempty"`
 	SKU                 	int     `json:"sku,omitempty"`
+	Deleted                 int     `json:"deleted,omitempty"`
 }
