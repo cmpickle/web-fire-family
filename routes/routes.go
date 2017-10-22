@@ -15,6 +15,7 @@ import (
 	//"../models"
 
 	_ "github.com/go-sql-driver/mysql"
+
 )
 //Doesn't match our product table as of 10/20
 type Product struct {
@@ -189,9 +190,56 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 
 // Creates a Product object from the passed in JSON Product and stores it in the database
 func createProduct(w http.ResponseWriter, r *http.Request) {
-	var product Product
+	var product Productt
 	_ = json.NewDecoder(r.Body).Decode(&product)
-	Products = append(Products, product)
+	fmt.Println(product)
+
+	//new stuff
+	//probs want to check each required column
+	if product.ProductName == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Invalid product, please include a name, notification quantity, color, trim color, size, price, dimensions, and SKU"))
+		return
+	}
+	stmnt, err := db.Prepare("INSERT INTO Product (ProductName, NotificationQuantity, Color, TrimColor, Size, Price, Dimensions, SKU) VALUES(?,?,?,?,?,?,?,?)")
+	if err != nil {
+		fmt.Println("1")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Invalid product, please include a name, notification quantity, color, trim color, size, price, dimensions, and SKU"))
+		return
+	}
+	res, err := stmnt.Exec(product.ProductName, product.NotificationQuantity, product.Color, product.TrimColor, product.Size, product.Price, product.Dimensions, product.SKU)
+	if err != nil {
+		fmt.Println("2")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Insert failed"))
+		return
+	}
+	lastId, err := res.LastInsertId()
+	if err != nil {
+		fmt.Println("3")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Insert failed"))
+		return
+	}
+	rowCnt, err := res.RowsAffected()
+	if err != nil {
+		fmt.Println("4")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Insert failed"))
+		return
+	}
+	fmt.Printf("ID = %d, affected = %d\n", lastId, rowCnt)
+	lstId := strconv.Itoa(int(lastId))
+	//Not sure what we want to return when sucess?
+	w.Write([]byte("Success! The index is " + lstId))
+
+	//end new stuff
+	//Products = append(Products, product)
 }
 
 // Deletes the specified product from the database
