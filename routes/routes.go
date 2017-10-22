@@ -151,6 +151,9 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 		}
 		if p.Deleted == 0 {
 			prods = append(prods, p)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("404 - Product not found"))
+			return
 		}
 		found = productID
 
@@ -186,7 +189,7 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 	//STILL NEED THIS FOR IF ITS NOT FOUND
 	if found == -1 {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("400 - Invalid product ID."))
+		w.Write([]byte("404 - Product not found"))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
