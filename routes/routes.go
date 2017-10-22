@@ -2,7 +2,7 @@ package routes
 
 import (
 	"encoding/json"
-	"log"
+	//"log"
 	"net/http"
 	"strconv"
 
@@ -119,8 +119,44 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 func getProduct(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
-	index := -1
-	for i, value := range Products {
+	found := -1
+
+	//new stuff can easily change to work off of SKU
+	productID, err := strconv.Atoi(id)
+	if  productID < 1 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Invalid product ID."))
+		return
+	}
+	rows, err := db.Query("SELECT * FROM Product WHERE ProductID = ?", id)
+	if err != nil {
+		//Error handling
+		fmt.Println("1")
+		fmt.Println(err)
+	}
+	defer rows.Close()
+	prods := make([]*Productt, 0)
+	for rows.Next() {
+
+		p := new(Productt)
+		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU)
+		if err != nil {
+			//More error handling
+			fmt.Println("2")
+			fmt.Println(err)
+		}
+		prods = append(prods, p)
+		found = productID
+
+	}
+	if err = rows.Err(); err != nil {
+		//Error handling
+		fmt.Println("3")
+		fmt.Println(err)
+	}
+	//end new stuff
+
+	/*for i, value := range Products {
 		productID, err := strconv.Atoi(id)
 		if err != nil {
 			log.Fatal(err)
@@ -139,13 +175,16 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(Products[index])
 			return
 		}
-	}
+	}*/
 
-	if index == -1 {
+	//STILL NEED THIS FOR IF ITS NOT FOUND
+	if found == -1 {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("400 - Invalid product ID."))
 		return
 	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(prods)
 }
 
 // Creates a Product object from the passed in JSON Product and stores it in the database
