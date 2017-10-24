@@ -1,0 +1,9 @@
+WEB:
+  port: 8000
+
+mysql:
+  driver: mysql
+  host: localhost
+  user: ''
+  database: test
+  port: 3306
