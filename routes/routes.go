@@ -12,40 +12,41 @@ import (
 	"fmt"
 
 	//Cannot get this import to work
-	//"../models"
+	"../models"
 
 	_ "github.com/go-sql-driver/mysql"
 
+	//"image/color"
 )
 //Doesn't match our product table as of 10/20
-type Product struct {
-	ProductID           int     `json:"productid,omitempty"`
-	ProductName         string  `json:"productname,omitempty"`
-	InventoryScanningID int     `json:"inventoryscanningid,omitempty"`
-	Color               string  `json:"color,omitempty"`
-	Size                string  `json:"size,omitempty"`
-	Price               float32 `json:"price,omitempty"`
-	Dimensions          string  `json:"dimensions,omitempty"`
-	SKU                 int     `json:"sku,omitempty"`
-}
+//type Product struct {
+//	ProductID           int     `json:"productid,omitempty"`
+//	ProductName         string  `json:"productname,omitempty"`
+//	InventoryScanningID int     `json:"inventoryscanningid,omitempty"`
+//	Color               string  `json:"color,omitempty"`
+//	Size                string  `json:"size,omitempty"`
+//	Price               float32 `json:"price,omitempty"`
+//	Dimensions          string  `json:"dimensions,omitempty"`
+//	SKU                 int     `json:"sku,omitempty"`
+//}
 
 //Matches our product table
-type Productt struct {
-	ProductID           	int     `json:"productid,omitempty"`
-	ProductName         	string  `json:"productname,omitempty"`
-	NotificationQuantity	int 	`json:"notificationquantity, omitempty"`
-	Color               	string  `json:"color,omitempty"`
-	TrimColor				string	`json:"trimcolor,omitempty"`
-	Size                	string  `json:"size,omitempty"`
-	Price               	float32 `json:"price,omitempty"`
-	Dimensions          	string  `json:"dimensions,omitempty"`
-	SKU                 	int     `json:"sku,omitempty"`
-	Deleted                 int     `json:"deleted,omitempty"`
-}
+//type Productt struct {
+//	ProductID           	int     `json:"productid,omitempty"`
+//	ProductName         	string  `json:"productname,omitempty"`
+//	NotificationQuantity	int 	`json:"notificationquantity, omitempty"`
+//	Color               	string  `json:"color,omitempty"`
+//	TrimColor				string	`json:"trimcolor,omitempty"`
+//	Size                	string  `json:"size,omitempty"`
+//	Price               	float32 `json:"price,omitempty"`
+//	Dimensions          	string  `json:"dimensions,omitempty"`
+//	SKU                 	int     `json:"sku,omitempty"`
+//	Deleted                 int     `json:"deleted,omitempty"`
+//}
 
 
 
-var Products []Product
+var Products []models.Product
 var db *sql.DB
 
 // InitRoutes creates the web API routes and sets their event handler functions
@@ -67,9 +68,9 @@ func InitRoutes() http.Handler {
 	}
 	//This should bring a list of all the Products
 
-	Products = append(Products, Product{ProductID: 1, ProductName: "Firefighter Wallet", InventoryScanningID: 1, Color: "Tan", Price: 30, Dimensions: "3 1/2\" tall and 4 1/2\" long", SKU: 1})
-	Products = append(Products, Product{ProductID: 2, ProductName: "Firefighter Apron", InventoryScanningID: 2, Color: "Tan", Size: "One Size Fits All", Price: 29, Dimensions: "31\" tall and 26\" wide and ties around a waist up to 54\"", SKU: 2})
-	Products = append(Products, Product{ProductID: 3, ProductName: "Firefighter Baby Outfit", InventoryScanningID: 3, Color: "Tan", Size: "Newborn", Price: 39.99, Dimensions: "Waist-14\", Length-10\"", SKU: 3})
+	Products = append(Products, models.Product{ProductID: 1, ProductName: "Firefighter Wallet", NotificationQuantity: 1, Color: "Tan", Price: 30, Dimensions: "3 1/2\" tall and 4 1/2\" long", SKU: 1})
+	Products = append(Products, models.Product{ProductID: 2, ProductName: "Firefighter Apron", NotificationQuantity: 2, Color: "Tan", Size: "One Size Fits All", Price: 29, Dimensions: "31\" tall and 26\" wide and ties around a waist up to 54\"", SKU: 2})
+	Products = append(Products, models.Product{ProductID: 3, ProductName: "Firefighter Baby Outfit", NotificationQuantity: 3, Color: "Tan", Size: "Newborn", Price: 39.99, Dimensions: "Waist-14\", Length-10\"", SKU: 3})
 
 	router.HandleFunc("/product", getProducts).Methods("GET")
 	// This should bring back a specific Product
@@ -97,9 +98,9 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 	defer rows.Close()
-	prods := make([]*Productt, 0)
+	prods := make([]*models.Product, 0)
 	for rows.Next() {
-		p := new(Productt)
+		p := new(models.Product)
 		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU, &p.Deleted)
 		if err != nil {
 			//More error handling
@@ -139,10 +140,10 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 	defer rows.Close()
-	prods := make([]*Productt, 0)
+	prods := make([]*models.Product, 0)
 	for rows.Next() {
 
-		p := new(Productt)
+		p := new(models.Product)
 		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU, &p.Deleted)
 		if err != nil {
 			//More error handling
@@ -201,7 +202,7 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 // Not needed tho, def an extra thing
 // Creates a Product object from the passed in JSON Product and stores it in the database
 func createProduct(w http.ResponseWriter, r *http.Request) {
-	var product Productt
+	var product models.Product
 	_ = json.NewDecoder(r.Body).Decode(&product)
 	fmt.Println(product)
 
@@ -296,10 +297,10 @@ func deleteProduct(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 	defer rows.Close()
-	prods := make([]*Productt, 0)
+	prods := make([]*models.Product, 0)
 	for rows.Next() {
 
-		p := new(Productt)
+		p := new(models.Product)
 		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU, &p.Deleted)
 		if err != nil {
 			//More error handling
@@ -339,7 +340,7 @@ func deleteProduct(w http.ResponseWriter, r *http.Request) {
 
 // Updates the product
 func updateProduct(w http.ResponseWriter, r *http.Request) {
-	var product Product
+	var product models.Product
 	_ = json.NewDecoder(r.Body).Decode(&product)
 
 	params := mux.Vars(r)
