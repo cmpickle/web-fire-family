@@ -55,7 +55,9 @@ func InitRoutes() http.Handler {
 
 	//Trying DB things here
 	var err error
-	db, err = sql.Open("mysql", "fireadmin:FireFamily@1@tcp(165.227.17.104:3306)/Fire_Family")
+	//db, err = sql.Open("mysql", "fireadmin:FireFamily@1@tcp(165.227.17.104:3306)/Fire_Family")
+	models.NewDB("fireadmin:FireFamily@1@tcp(165.227.17.104:3306)/Fire_Family")
+	db = models.Db
 	if err != nil {
 		//error handling here
 		fmt.Println("Conn")
