@@ -13,6 +13,7 @@ import (
 
 	//Cannot get this import to work
 	"../models"
+	"../app"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -48,15 +49,24 @@ import (
 
 var Products []models.Product
 var db *sql.DB
-
+var settings app.driver
+var dbConnection string
 // InitRoutes creates the web API routes and sets their event handler functions
 func InitRoutes() http.Handler {
+	// initializing the Router
 	router := mux.NewRouter()
 
+
+	// Bootstrapping the settings
+	settings = app.loadSettings()
+	//"fireadmin:FireFamily@1@tcp(165.227.17.104:3306)/Fire_Family"
+	dbConnection = "" + settings.dbuser + ":" + settings.dbpass + "@tcp(" + settings.host + ":" + settings.port +")/" + settings.database
 	//Trying DB things here
+
+
 	var err error
 	//db, err = sql.Open("mysql", "fireadmin:FireFamily@1@tcp(165.227.17.104:3306)/Fire_Family")
-	models.NewDB("fireadmin:FireFamily@1@tcp(165.227.17.104:3306)/Fire_Family")
+	models.NewDB(dbConnection)
 	db = models.Db
 	if err != nil {
 		//error handling here
