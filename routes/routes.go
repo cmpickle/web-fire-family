@@ -2,7 +2,7 @@ package routes
 
 import (
 	"encoding/json"
-	//"log"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -70,13 +70,13 @@ func InitRoutes() http.Handler {
 	db = models.Db
 	if err != nil {
 		//error handling here
-		fmt.Println("Conn")
-		fmt.Println(err)
+		log.Fatal("connection Error of %v", err)
+		//fmt.Println("Conn")
+		//fmt.Println(err)
 	}
 	if err = db.Ping(); err != nil {
 		//error handling here
-		fmt.Println("Ping")
-		fmt.Println(err)
+		log.Fatal("No Ping of Database %v", err)
 	}
 	//This should bring a list of all the Products
 
@@ -105,28 +105,26 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 	//json.NewEncoder(w).Encode(Products)
 	rows, err := db.Query("SELECT * FROM Product")
 	if err != nil {
-		//Error handling
-		fmt.Println("1")
-		fmt.Println(err)
+		//Error handling moved error handling to log format instead of right to console
+		log.Fatal("unable to read from database err: %v",err)
 	}
+
 	defer rows.Close()
 	prods := make([]*models.Product, 0)
 	for rows.Next() {
 		p := new(models.Product)
 		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU, &p.Deleted)
 		if err != nil {
-			//More error handling
-			fmt.Println("2")
-			fmt.Println(err)
+			log.Fatal("known Error database err: %v",err)
 		}
 		if p.Deleted == 0 {
 			prods = append(prods, p)
 		}
 	}
 	if err = rows.Err(); err != nil {
-		//Error handling
-		fmt.Println("3")
-		fmt.Println(err)
+		// replaced all errors with proper logging
+		// TODO: we need added  error state with http.Response Writer
+		log.Fatal("unable to read from database err: %v",err)
 	}
 	json.NewEncoder(w).Encode(prods)
 
