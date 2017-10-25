@@ -1,8 +1,9 @@
 package main
 
 import (
+	"net/http"
 	"./routes"
 )
 func main() {
-	routes.InitRoutes()
+	http.ListenAndServe(":8000", routes.InitRoutes())
 }
