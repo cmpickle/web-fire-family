@@ -1,29 +1,21 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	//"database/sql"
-	//"./models"
-	"./routes"
+
+	"github.com/Xero67/web-fire-family/models"
+	"github.com/Xero67/web-fire-family/routes"
 )
 
-/*//Dependency injection? Screw it, going with a global
-type Env struct {
-	db *sql.DB
-}*/
-
 func main() {
-	//Ignore this stuff, was trying to figure out dependency injection and global variables
-	/*db, err := models.NewDB("fireadmin:FireFamily@1@165.227.17.104:3306/FireFamilyDB")
+	db, err := models.InitDB()
 	if err != nil {
-		//Error handling here
+		fmt.Errorf("Database wasn't initialized!")
 	}
-	defer db.Close()
-	env := &Env{db: db}
 
+	env := models.Env{Db: db}
 
-	//Creates the global variable, also good reason for config file here
-	models.NewDB("fireadmin:FireFamily@1@165.227.17.104:3306/FireFamilyDB")
-	*/
-	http.ListenAndServe(":8000", routes.InitRoutes())
+	http.ListenAndServe(":8000", routes.InitRoutes(env))
 }

@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -8,66 +9,52 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"database/sql"
 	"fmt"
 
-	//Cannot get this import to work
-	//"../models"
+	"github.com/Xero67/web-fire-family/models"
 
 	_ "github.com/go-sql-driver/mysql"
 )
-//Doesn't match our product table as of 10/20
-type Product struct {
-	ProductID           int     `json:"productid,omitempty"`
-	ProductName         string  `json:"productname,omitempty"`
-	InventoryScanningID int     `json:"inventoryscanningid,omitempty"`
-	Color               string  `json:"color,omitempty"`
-	Size                string  `json:"size,omitempty"`
-	Price               float32 `json:"price,omitempty"`
-	Dimensions          string  `json:"dimensions,omitempty"`
-	SKU                 int     `json:"sku,omitempty"`
-}
 
-//Matches our product table
-type Productt struct {
-	ProductID           	int     `json:"productid,omitempty"`
-	ProductName         	string  `json:"productname,omitempty"`
-	NotificationQuantity	int 	`json:"notificationquantity, omitempty"`
-	Color               	string  `json:"color,omitempty"`
-	TrimColor				string	`json:"trimcolor,omitempty"`
-	Size                	string  `json:"size,omitempty"`
-	Price               	float32 `json:"price,omitempty"`
-	Dimensions          	string  `json:"dimensions,omitempty"`
-	SKU                 	int     `json:"sku,omitempty"`
-}
+// //Doesn't match our product table as of 10/20
+// type Product struct {
+// 	ProductID           int     `json:"productid,omitempty"`
+// 	ProductName         string  `json:"productname,omitempty"`
+// 	InventoryScanningID int     `json:"inventoryscanningid,omitempty"`
+// 	Color               string  `json:"color,omitempty"`
+// 	Size                string  `json:"size,omitempty"`
+// 	Price               float32 `json:"price,omitempty"`
+// 	Dimensions          string  `json:"dimensions,omitempty"`
+// 	SKU                 int     `json:"sku,omitempty"`
+// }
 
+var Products []models.Product
 
-
-var Products []Product
 var db *sql.DB
 
 // InitRoutes creates the web API routes and sets their event handler functions
-func InitRoutes() http.Handler {
+func InitRoutes(env models.Env) http.Handler {
 	router := mux.NewRouter()
 
-	//Trying DB things here
-	var err error
-	db, err = sql.Open("mysql", "fireadmin:FireFamily@1@tcp(165.227.17.104:3306)/Fire_Family")
-	if err != nil {
-		//error handling here
-		fmt.Println("Conn")
-		fmt.Println(err)
-	}
-	if err = db.Ping(); err != nil {
-		//error handling here
-		fmt.Println("Ping")
-		fmt.Println(err)
-	}
-	//This should bring a list of all the Products
+	// //Trying DB things here
+	// var err error
+	// db, err = sql.Open("mysql", "fireadmin:FireFamily@1@tcp(165.227.17.104:3306)/Fire_Family")
+	// if err != nil {
+	// 	//error handling here
+	// 	fmt.Println("Conn")
+	// 	fmt.Println(err)
+	// }
+	// if err = db.Ping(); err != nil {
+	// 	//error handling here
+	// 	fmt.Println("Ping")
+	// 	fmt.Println(err)
+	// }
+	db = env.Db
 
-	Products = append(Products, Product{ProductID: 1, ProductName: "Firefighter Wallet", InventoryScanningID: 1, Color: "Tan", Price: 30, Dimensions: "3 1/2\" tall and 4 1/2\" long", SKU: 1})
-	Products = append(Products, Product{ProductID: 2, ProductName: "Firefighter Apron", InventoryScanningID: 2, Color: "Tan", Size: "One Size Fits All", Price: 29, Dimensions: "31\" tall and 26\" wide and ties around a waist up to 54\"", SKU: 2})
-	Products = append(Products, Product{ProductID: 3, ProductName: "Firefighter Baby Outfit", InventoryScanningID: 3, Color: "Tan", Size: "Newborn", Price: 39.99, Dimensions: "Waist-14\", Length-10\"", SKU: 3})
+	//This should bring a list of all the Products
+	Products = append(Products, models.Product{ProductID: 1, ProductName: "Firefighter Wallet", NotificationQuantity: 10, Color: "Tan", TrimColor: "Black", Price: 30, Dimensions: "3 1/2\" tall and 4 1/2\" long", SKU: 1})
+	Products = append(Products, models.Product{ProductID: 2, ProductName: "Firefighter Apron", NotificationQuantity: 20, Color: "Tan", TrimColor: "Black", Size: "One Size Fits All", Price: 29, Dimensions: "31\" tall and 26\" wide and ties around a waist up to 54\"", SKU: 2})
+	Products = append(Products, models.Product{ProductID: 3, ProductName: "Firefighter Baby Outfit", NotificationQuantity: 13, Color: "Tan", TrimColor: "Black", Size: "Newborn", Price: 39.99, Dimensions: "Waist-14\", Length-10\"", SKU: 3})
 
 	router.HandleFunc("/product", getProducts).Methods("GET")
 	// This should bring back a specific Product
@@ -81,27 +68,44 @@ func InitRoutes() http.Handler {
 	//This allows us to set the quantity value of a product.
 	router.HandleFunc("/inventory/update/{id}/{quantity}", updateInventory).Methods("PUT")
 
-
 	return router
 }
 
 // Returns all of the products stored in the database in JSON format
 func getProducts(w http.ResponseWriter, r *http.Request) {
 	//json.NewEncoder(w).Encode(Products)
-	rows, err := db.Query("SELECT * FROM Product")
+	tx, err := db.Begin()
 	if err != nil {
-		//Error handling
-		fmt.Println("1")
-		fmt.Println(err)
+		return
 	}
-	defer rows.Close()
-	prods := make([]*Productt, 0)
+
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit()
+		default:
+			tx.Rollback()
+		}
+	}()
+
+	var rows *sql.Rows
+	if rows, err = tx.Query("SELECT * FROM Product"); err != nil {
+		return
+	}
+	// rows, err := db.Query("SELECT * FROM Product")
+	// if err != nil {
+	// 	//Error handling
+	// 	fmt.Println("1")
+	// 	fmt.Println(err)
+	// }
+	// defer rows.Close()
+	prods := make([]*models.Product, 0)
 	for rows.Next() {
-		p := new(Productt)
-		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU)
+		p := new(models.Product)
+		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU, &p.Deleted)
 		if err != nil {
 			//More error handling
-			fmt.Println("2")
+			fmt.Println("routes.go - getProducts - rows.Scan error")
 			fmt.Println(err)
 		}
 		prods = append(prods, p)
@@ -150,7 +154,7 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 
 // Creates a Product object from the passed in JSON Product and stores it in the database
 func createProduct(w http.ResponseWriter, r *http.Request) {
-	var product Product
+	var product models.Product
 	_ = json.NewDecoder(r.Body).Decode(&product)
 	Products = append(Products, product)
 }
@@ -181,7 +185,7 @@ func deleteProduct(w http.ResponseWriter, r *http.Request) {
 
 // Updates the product
 func updateProduct(w http.ResponseWriter, r *http.Request) {
-	var product Product
+	var product models.Product
 	_ = json.NewDecoder(r.Body).Decode(&product)
 
 	params := mux.Vars(r)
