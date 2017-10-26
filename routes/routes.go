@@ -3,7 +3,7 @@ package routes
 import (
 	"database/sql"
 	"encoding/json"
-	"log"
+	//"log"
 	"net/http"
 	"strconv"
 
@@ -14,19 +14,8 @@ import (
 	"github.com/Xero67/web-fire-family/models"
 
 	_ "github.com/go-sql-driver/mysql"
+	//"image/color"
 )
-
-// //Doesn't match our product table as of 10/20
-// type Product struct {
-// 	ProductID           int     `json:"productid,omitempty"`
-// 	ProductName         string  `json:"productname,omitempty"`
-// 	InventoryScanningID int     `json:"inventoryscanningid,omitempty"`
-// 	Color               string  `json:"color,omitempty"`
-// 	Size                string  `json:"size,omitempty"`
-// 	Price               float32 `json:"price,omitempty"`
-// 	Dimensions          string  `json:"dimensions,omitempty"`
-// 	SKU                 int     `json:"sku,omitempty"`
-// }
 
 var Products []models.Product
 
@@ -36,19 +25,6 @@ var db *sql.DB
 func InitRoutes(env models.Env) http.Handler {
 	router := mux.NewRouter()
 
-	// //Trying DB things here
-	// var err error
-	// db, err = sql.Open("mysql", "fireadmin:FireFamily@1@tcp(165.227.17.104:3306)/Fire_Family")
-	// if err != nil {
-	// 	//error handling here
-	// 	fmt.Println("Conn")
-	// 	fmt.Println(err)
-	// }
-	// if err = db.Ping(); err != nil {
-	// 	//error handling here
-	// 	fmt.Println("Ping")
-	// 	fmt.Println(err)
-	// }
 	db = env.Db
 
 	//This should bring a list of all the Products
@@ -73,7 +49,6 @@ func InitRoutes(env models.Env) http.Handler {
 
 // Returns all of the products stored in the database in JSON format
 func getProducts(w http.ResponseWriter, r *http.Request) {
-	//json.NewEncoder(w).Encode(Products)
 	tx, err := db.Begin()
 	if err != nil {
 		return
@@ -92,13 +67,7 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 	if rows, err = tx.Query("SELECT * FROM Product"); err != nil {
 		return
 	}
-	// rows, err := db.Query("SELECT * FROM Product")
-	// if err != nil {
-	// 	//Error handling
-	// 	fmt.Println("1")
-	// 	fmt.Println(err)
-	// }
-	// defer rows.Close()
+
 	prods := make([]*models.Product, 0)
 	for rows.Next() {
 		p := new(models.Product)
@@ -108,7 +77,9 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("routes.go - getProducts - rows.Scan error")
 			fmt.Println(err)
 		}
-		prods = append(prods, p)
+		if p.Deleted == 0 {
+			prods = append(prods, p)
+		}
 	}
 	if err = rows.Err(); err != nil {
 		//Error handling
@@ -123,45 +94,136 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 func getProduct(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
-	index := -1
-	for i, value := range Products {
-		productID, err := strconv.Atoi(id)
-		if err != nil {
-			log.Fatal(err)
-			json.NewEncoder(w).Encode("")
-		}
+	found := -1
 
-		if productID < 1 {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("400 - Invalid product ID."))
-			return
-		}
-
-		if value.ProductID == productID {
-			index = i
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(Products[index])
-			return
-		}
-	}
-
-	if index == -1 {
+	//new stuff can easily change to work off of SKU
+	productID, err := strconv.Atoi(id)
+	if productID < 1 {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("400 - Invalid product ID."))
 		return
 	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit()
+		default:
+			tx.Rollback()
+		}
+	}()
+
+	var rows *sql.Rows
+	if rows, err = tx.Query("SELECT * FROM Product WHERE ProductID = ?", id); err != nil {
+		fmt.Println("routes.go - getProduct - tx.Query error selecting product id: " + id)
+		fmt.Println(err)
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+	defer rows.Close()
+
+	prods := make([]*models.Product, 0)
+	for rows.Next() {
+		p := new(models.Product)
+		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU, &p.Deleted)
+		if err != nil {
+			//More error handling
+			fmt.Println("2")
+			fmt.Println(err)
+		}
+		if p.Deleted == 1 {
+			prods = append(prods, p)
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("404 - Product not found"))
+			return
+		}
+		found = productID
+		prods = append(prods, p)
+	}
+	if err = rows.Err(); err != nil {
+		//Error handling
+		fmt.Println("routes.go - getProduct - rows.Err()")
+		fmt.Println(err)
+	}
+
+	//STILL NEED THIS FOR IF ITS NOT FOUND
+	if found == -1 {
+		w.WriteHeader(http.StatusNotFound)
+		// w.Write([]byte("404 - Product not found"))
+		json.NewEncoder(w).Encode("404 - Product not found")
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(prods)
 }
 
+// Smart thing to do would be to check the DB for the item already being created first
+// As well as if that item was already deleted then just toggle it instead
+// Not needed tho, def an extra thing
 // Creates a Product object from the passed in JSON Product and stores it in the database
 func createProduct(w http.ResponseWriter, r *http.Request) {
 	var product models.Product
 	_ = json.NewDecoder(r.Body).Decode(&product)
-	Products = append(Products, product)
+	fmt.Println(product)
+
+	//new stuff
+	//probs want to check each required column
+	if product.ProductName == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Invalid product, please include a name, notification quantity, color, trim color, size, price, dimensions, and SKU"))
+		return
+	}
+	stmnt, err := db.Prepare("INSERT INTO Product (ProductName, NotificationQuantity, Color, TrimColor, Size, Price, Dimensions, SKU) VALUES(?,?,?,?,?,?,?,?)")
+	if err != nil {
+		fmt.Println("1")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Invalid product, please include a name, notification quantity, color, trim color, size, price, dimensions, and SKU"))
+		return
+	}
+	res, err := stmnt.Exec(product.ProductName, product.NotificationQuantity, product.Color, product.TrimColor, product.Size, product.Price, product.Dimensions, product.SKU)
+	if err != nil {
+		fmt.Println("2")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Insert failed"))
+		return
+	}
+	lastId, err := res.LastInsertId()
+	if err != nil {
+		fmt.Println("3")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Insert failed"))
+		return
+	}
+	rowCnt, err := res.RowsAffected()
+	if err != nil {
+		fmt.Println("4")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Insert failed"))
+		return
+	}
+	fmt.Printf("ID = %d, affected = %d\n", lastId, rowCnt)
+	lstId := strconv.Itoa(int(lastId))
+	//Not sure what we want to return when sucess?
+	w.Write([]byte("Success! The index is " + lstId))
+
+	//end new stuff
+	//Products = append(Products, product)
 }
 
 // Deletes the specified product from the database
+// If the route logic were seperate from the DB logic, we could just call a getproductbyID method that is used
+// by both
 func deleteProduct(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
+	/*params := mux.Vars(r)
 	id := params["id"]
 
 	for i, value := range Products {
@@ -180,7 +242,65 @@ func deleteProduct(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	w.WriteHeader(http.StatusBadRequest)
-	w.Write([]byte("400 - Invalid product ID."))
+	w.Write([]byte("400 - Invalid product ID."))*/
+
+	//new version
+	params := mux.Vars(r)
+	id := params["id"]
+	found := -1
+
+	productID, err := strconv.Atoi(id)
+	if productID < 1 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Invalid product ID."))
+		return
+	}
+	rows, err := db.Query("SELECT * FROM Product WHERE ProductID = ?", id)
+	if err != nil {
+		//Error handling
+		fmt.Println("1")
+		fmt.Println(err)
+	}
+	defer rows.Close()
+	prods := make([]*models.Product, 0)
+	for rows.Next() {
+
+		p := new(models.Product)
+		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU, &p.Deleted)
+		if err != nil {
+			//More error handling
+			fmt.Println("2")
+			fmt.Println(err)
+		}
+		if p.Deleted == 0 {
+			prods = append(prods, p)
+		}
+		found = productID
+
+	}
+	if err = rows.Err(); err != nil {
+		//Error handling
+		fmt.Println("3")
+		fmt.Println(err)
+	}
+
+	if found == -1 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Invalid product ID."))
+		return
+	} else { //All deletion logic goes here because it confirms the find
+		prods[0].Deleted = 1
+		stmt, err := db.Prepare("UPDATE Product SET Deleted = 1 WHERE ProductID = ?")
+		if err != nil {
+			fmt.Println(err)
+		}
+		_, errr := stmt.Exec(prods[0].ProductID)
+		if errr != nil {
+			fmt.Println(err)
+		}
+
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 // Updates the product

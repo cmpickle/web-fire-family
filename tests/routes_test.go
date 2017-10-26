@@ -76,7 +76,7 @@ func TestGetProduct(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"productid", "productname", "notificationquantity", "color", "trimcolor", "size", "price", "dimensions", "sku", "deleted"}).
 		AddRow(1, "Firefighter Wallet", 10, "Tan", "Black", "size", 30, "3 1/2\" tall and 4 1/2\" long", 1, 0)
 	mock.ExpectBegin()
-	mock.ExpectQuery("^SELECT (.+) FROM Product$").WillReturnRows(rows)
+	mock.ExpectQuery("^SELECT (.+) FROM Product WHERE ProductID = \\?$").WillReturnRows(rows)
 	mock.ExpectCommit()
 
 	router := routes.InitRoutes(models.Env{db})
@@ -89,7 +89,7 @@ func TestGetProduct(t *testing.T) {
 	}
 
 	// Check the response body is what we expect.
-	expected := `{"productid":1,"productname":"Firefighter Wallet","notificationquantity":10,"color":"Tan","trimcolor":"Black","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1}`
+	expected := `[{"productid":1,"productname":"Firefighter Wallet","notificationquantity":10,"color":"Tan","trimcolor":"Black","size":"size","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1}]`
 	equal, err := AreEqualJSON(w.Body.String(), expected)
 	if !equal {
 		t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), expected)
@@ -98,7 +98,7 @@ func TestGetProduct(t *testing.T) {
 
 func TestGetProductInvalidID(t *testing.T) {
 	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
-	req, err := http.NewRequest("GET", "/product/8", nil)
+	req, err := http.NewRequest("GET", "/product/8000", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -112,10 +112,10 @@ func TestGetProductInvalidID(t *testing.T) {
 	defer db.Close()
 
 	// before we actually execute our api function, we need to expect required DB actions
-	rows := sqlmock.NewRows([]string{"productid", "productname", "notificationquantity", "color", "trimcolor", "size", "price", "dimensions", "sku", "deleted"}).
-		AddRow(1, "Firefighter Wallet", 10, "Tan", "Black", "size", 30, "3 1/2\" tall and 4 1/2\" long", 1, 0)
+	// rows := sqlmock.NewRows([]string{"productid", "productname", "notificationquantity", "color", "trimcolor", "size", "price", "dimensions", "sku", "deleted"}).
+	// 	AddRow(1, "Firefighter Wallet", 10, "Tan", "Black", "size", 30, "3 1/2\" tall and 4 1/2\" long", 1, 0)
 	mock.ExpectBegin()
-	mock.ExpectQuery("^SELECT (.+) FROM Product$").WillReturnRows(rows)
+	mock.ExpectQuery("^SELECT (.+) FROM Product WHERE ProductID = \\?$").WillReturnError(fmt.Errorf("404 - Product not found"))
 	mock.ExpectCommit()
 
 	router := routes.InitRoutes(models.Env{db})
