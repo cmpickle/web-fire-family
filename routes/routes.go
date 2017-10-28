@@ -154,8 +154,8 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 	//STILL NEED THIS FOR IF ITS NOT FOUND
 	if found == -1 {
 		w.WriteHeader(http.StatusNotFound)
-		// w.Write([]byte("404 - Product not found"))
-		json.NewEncoder(w).Encode("404 - Product not found")
+		w.Write([]byte("404 - Product not found"))
+		// json.NewEncoder(w).Encode("404 - Product not found")
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -168,7 +168,10 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 // Creates a Product object from the passed in JSON Product and stores it in the database
 func createProduct(w http.ResponseWriter, r *http.Request) {
 	var product models.Product
-	_ = json.NewDecoder(r.Body).Decode(&product)
+	err := json.NewDecoder(r.Body).Decode(&product)
+	if err != nil {
+		fmt.Println(err)
+	}
 	fmt.Println(product)
 
 	//new stuff
@@ -178,22 +181,37 @@ func createProduct(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("400 - Invalid product, please include a name, notification quantity, color, trim color, size, price, dimensions, and SKU"))
 		return
 	}
-	stmnt, err := db.Prepare("INSERT INTO Product (ProductName, NotificationQuantity, Color, TrimColor, Size, Price, Dimensions, SKU) VALUES(?,?,?,?,?,?,?,?)")
+
+	tx, err := db.Begin()
 	if err != nil {
-		fmt.Println("1")
+		return
+	}
+
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit()
+		default:
+			tx.Rollback()
+		}
+	}()
+
+	res, err := tx.Exec("INSERT INTO Product (ProductName, NotificationQuantity, Color, TrimColor, Size, Price, Dimensions, SKU) VALUES(?,?,?,?,?,?,?,?)", product.ProductName, product.NotificationQuantity, product.Color, product.TrimColor, product.Size, product.Price, product.Dimensions, product.SKU)
+	if err != nil {
 		fmt.Println(err)
+		fmt.Println("1")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("400 - Invalid product, please include a name, notification quantity, color, trim color, size, price, dimensions, and SKU"))
 		return
 	}
-	res, err := stmnt.Exec(product.ProductName, product.NotificationQuantity, product.Color, product.TrimColor, product.Size, product.Price, product.Dimensions, product.SKU)
-	if err != nil {
-		fmt.Println("2")
-		fmt.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("400 - Insert failed"))
-		return
-	}
+	// res, err := stmnt.Exec(product.ProductName, product.NotificationQuantity, product.Color, product.TrimColor, product.Size, product.Price, product.Dimensions, product.SKU)
+	// if err != nil {
+	// 	fmt.Println("2")
+	// 	fmt.Println(err)
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	w.Write([]byte("400 - Insert failed"))
+	// 	return
+	// }
 	lastId, err := res.LastInsertId()
 	if err != nil {
 		fmt.Println("3")
@@ -213,10 +231,7 @@ func createProduct(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("ID = %d, affected = %d\n", lastId, rowCnt)
 	lstId := strconv.Itoa(int(lastId))
 	//Not sure what we want to return when sucess?
-	w.Write([]byte("Success! The index is " + lstId))
-
-	//end new stuff
-	//Products = append(Products, product)
+	json.NewEncoder(w).Encode([]byte("{\"ProductId\": " + lstId + "}"))
 }
 
 // Deletes the specified product from the database
@@ -255,11 +270,29 @@ func deleteProduct(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("400 - Invalid product ID."))
 		return
 	}
-	rows, err := db.Query("SELECT * FROM Product WHERE ProductID = ?", id)
+
+	tx, err := db.Begin()
 	if err != nil {
-		//Error handling
-		fmt.Println("1")
+		return
+	}
+
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit()
+		default:
+			tx.Rollback()
+		}
+	}()
+
+	rows, err := tx.Query("SELECT * FROM Product WHERE ProductID = ?", id)
+	if err != nil {
+		//Error handlin
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("404 - Product not found"))
+		fmt.Errorf("404 - Product not found")
 		fmt.Println(err)
+		return
 	}
 	defer rows.Close()
 	prods := make([]*models.Product, 0)
@@ -290,16 +323,17 @@ func deleteProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	} else { //All deletion logic goes here because it confirms the find
 		prods[0].Deleted = 1
-		stmt, err := db.Prepare("UPDATE Product SET Deleted = 1 WHERE ProductID = ?")
+		_, err := tx.Exec("UPDATE Product SET Deleted = 1 WHERE ProductID = ?", prods[0].ProductID)
 		if err != nil {
 			fmt.Println(err)
 		}
-		_, errr := stmt.Exec(prods[0].ProductID)
-		if errr != nil {
-			fmt.Println(err)
-		}
+		// _, errr := stmt.Exec()
+		// if errr != nil {
+		// 	fmt.Println(err)
+		// }
 
 	}
+	w.Write([]byte(`{"deleted": "true"}`))
 	w.WriteHeader(http.StatusOK)
 }
 

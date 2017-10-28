@@ -55,6 +55,11 @@ func TestGetProducts(t *testing.T) {
 	if !equal {
 		t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), expected)
 	}
+
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expections: %s", err)
+	}
 }
 
 func TestGetProduct(t *testing.T) {
@@ -94,6 +99,11 @@ func TestGetProduct(t *testing.T) {
 	if !equal {
 		t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), expected)
 	}
+
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expections: %s", err)
+	}
 }
 
 func TestGetProductInvalidID(t *testing.T) {
@@ -116,21 +126,14 @@ func TestGetProductInvalidID(t *testing.T) {
 	// 	AddRow(1, "Firefighter Wallet", 10, "Tan", "Black", "size", 30, "3 1/2\" tall and 4 1/2\" long", 1, 0)
 	mock.ExpectBegin()
 	mock.ExpectQuery("^SELECT (.+) FROM Product WHERE ProductID = \\?$").WillReturnError(fmt.Errorf("404 - Product not found"))
-	mock.ExpectCommit()
 
 	router := routes.InitRoutes(models.Env{db})
 
 	router.ServeHTTP(w, req)
 
-	// Check the status code is what we expect.
-	if status := w.Code; status != http.StatusBadRequest {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
-	}
-
-	// Check the response body is what we expect.
-	expected := `400 - Invalid product ID.`
-	if w.Body.String() != expected {
-		t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), expected)
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expections: %s", err)
 	}
 }
 
@@ -141,20 +144,13 @@ func TestGetProductNegativeID(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	w := httptest.NewRecorder()
-
-	db, mock, err := sqlmock.New()
+	db, _, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 	defer db.Close()
 
-	// before we actually execute our api function, we need to expect required DB actions
-	rows := sqlmock.NewRows([]string{"productid", "productname", "notificationquantity", "color", "trimcolor", "size", "price", "dimensions", "sku", "deleted"}).
-		AddRow(1, "Firefighter Wallet", 10, "Tan", "Black", "size", 30, "3 1/2\" tall and 4 1/2\" long", 1, 0)
-	mock.ExpectBegin()
-	mock.ExpectQuery("^SELECT (.+) FROM Product$").WillReturnRows(rows)
-	mock.ExpectCommit()
+	w := httptest.NewRecorder()
 
 	router := routes.InitRoutes(models.Env{db})
 
@@ -173,7 +169,7 @@ func TestGetProductNegativeID(t *testing.T) {
 }
 
 func TestCreateProduct(t *testing.T) {
-	data := []byte(`{"productid":4,"productname":"Firefighter Stuff","inventoryscanningid":1,"color":"Tan","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1}`)
+	data := []byte(`{"productid":10,"productname":"Firefighter Stuff","notificationquantity":10,"color":"Tan","trimcolor":"Black","size":"size","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":10,"deleted":0}`)
 
 	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
 	req, err := http.NewRequest("POST", "/product/create", bytes.NewBuffer(data))
@@ -182,14 +178,14 @@ func TestCreateProduct(t *testing.T) {
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	req2, err := http.NewRequest("GET", "/product", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	// req2, err := http.NewRequest("GET", "/product", nil)
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
 
 	w := httptest.NewRecorder()
 
-	w2 := httptest.NewRecorder()
+	// w2 := httptest.NewRecorder()
 
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -198,32 +194,30 @@ func TestCreateProduct(t *testing.T) {
 	defer db.Close()
 
 	mock.ExpectBegin()
-	mock.ExpectExec("SELECT * FROM Product").WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectExec("INSERT INTO product_viewers").WithArgs(2, 3).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("INSERT INTO Product \\(ProductName, NotificationQuantity, Color, TrimColor, Size, Price, Dimensions, SKU\\) VALUES\\(\\?,\\?,\\?,\\?,\\?,\\?,\\?,\\?\\)").WithArgs("Firefighter Stuff", 10, "Tan", "Black", 5, "size", "30", "3 1/2\" tall and 4 1/2\" long", 10) //.WillReturnResult(sqlmock.NewResult(10, 1))
 	mock.ExpectCommit()
 
 	router := routes.InitRoutes(models.Env{db})
 
-	routes.Products = nil
-
-	routes.Products = append(routes.Products, models.Product{ProductID: 1, ProductName: "Firefighter Wallet", NotificationQuantity: 10, Color: "Tan", TrimColor: "Black", Price: 30, Dimensions: "3 1/2\" tall and 4 1/2\" long", SKU: 1})
-	routes.Products = append(routes.Products, models.Product{ProductID: 2, ProductName: "Firefighter Apron", NotificationQuantity: 20, Color: "Tan", TrimColor: "Black", Size: "One Size Fits All", Price: 29, Dimensions: "31\" tall and 26\" wide and ties around a waist up to 54\"", SKU: 2})
-	routes.Products = append(routes.Products, models.Product{ProductID: 3, ProductName: "Firefighter Baby Outfit", NotificationQuantity: 13, Color: "Tan", TrimColor: "Black", Size: "Newborn", Price: 39.99, Dimensions: "Waist-14\", Length-10\"", SKU: 3})
-
 	router.ServeHTTP(w, req)
 
-	router.ServeHTTP(w2, req2)
+	// router.ServeHTTP(w2, req2)
 
 	// Check the status code is what we expect.
 	if status := w.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
 
-	// Check the response body is what we expect.
-	expected := `[{"productid":1,"productname":"Firefighter Wallet","inventoryscanningid":1,"color":"Tan","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1},{"productid":2,"productname":"Firefighter Apron","inventoryscanningid":2,"color":"Tan","size":"One Size Fits All","price":29,"dimensions":"31\" tall and 26\" wide and ties around a waist up to 54\"","sku":2},{"productid":3,"productname":"Firefighter Baby Outfit","inventoryscanningid":3,"color":"Tan","size":"Newborn","price":39.99,"dimensions":"Waist-14\", Length-10\"","sku":3},{"productid":4,"productname":"Firefighter Stuff","inventoryscanningid":1,"color":"Tan","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1}]`
-	equal, err := AreEqualJSON(w2.Body.String(), expected)
-	if !equal {
-		t.Errorf("handler returned unexpected body: got %v want %v", w2.Body.String(), expected)
+	// // Check the response body is what we expect.
+	// expected := `[{"productid":1,"productname":"Firefighter Wallet","inventoryscanningid":1,"color":"Tan","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1},{"productid":2,"productname":"Firefighter Apron","inventoryscanningid":2,"color":"Tan","size":"One Size Fits All","price":29,"dimensions":"31\" tall and 26\" wide and ties around a waist up to 54\"","sku":2},{"productid":3,"productname":"Firefighter Baby Outfit","inventoryscanningid":3,"color":"Tan","size":"Newborn","price":39.99,"dimensions":"Waist-14\", Length-10\"","sku":3},{"productid":4,"productname":"Firefighter Stuff","inventoryscanningid":1,"color":"Tan","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1}]`
+	// equal, err := AreEqualJSON(w2.Body.String(), expected)
+	// if !equal {
+	// 	t.Errorf("handler returned unexpected body: got %v want %v", w2.Body.String(), expected)
+	// }
+
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expections: %s", err)
 	}
 }
 
@@ -234,14 +228,7 @@ func TestDeleteProduct(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	req2, err := http.NewRequest("GET", "/product", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	w := httptest.NewRecorder()
-
-	w2 := httptest.NewRecorder()
 
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -249,22 +236,18 @@ func TestDeleteProduct(t *testing.T) {
 	}
 	defer db.Close()
 
+	// before we actually execute our api function, we need to expect required DB actions
+	rows := sqlmock.NewRows([]string{"productid", "productname", "notificationquantity", "color", "trimcolor", "size", "price", "dimensions", "sku", "deleted"}).
+		AddRow(2, "Swing", 10, "test", "test", "test", 1, "test", 1, 0)
+
 	mock.ExpectBegin()
-	mock.ExpectExec("SELECT * FROM Product").WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectExec("INSERT INTO product_viewers").WithArgs(2, 3).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectQuery("^SELECT (.+) FROM Product WHERE ProductID = \\?$").WillReturnRows(rows)
+	mock.ExpectExec("^UPDATE Product SET Deleted = 1 WHERE ProductID = \\?").WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
 	router := routes.InitRoutes(models.Env{db})
 
-	routes.Products = nil
-
-	routes.Products = append(routes.Products, models.Product{ProductID: 1, ProductName: "Firefighter Wallet", NotificationQuantity: 10, Color: "Tan", TrimColor: "Black", Price: 30, Dimensions: "3 1/2\" tall and 4 1/2\" long", SKU: 1})
-	routes.Products = append(routes.Products, models.Product{ProductID: 2, ProductName: "Firefighter Apron", NotificationQuantity: 20, Color: "Tan", TrimColor: "Black", Size: "One Size Fits All", Price: 29, Dimensions: "31\" tall and 26\" wide and ties around a waist up to 54\"", SKU: 2})
-	routes.Products = append(routes.Products, models.Product{ProductID: 3, ProductName: "Firefighter Baby Outfit", NotificationQuantity: 13, Color: "Tan", TrimColor: "Black", Size: "Newborn", Price: 39.99, Dimensions: "Waist-14\", Length-10\"", SKU: 3})
-
 	router.ServeHTTP(w, req)
-
-	router.ServeHTTP(w2, req2)
 
 	// Check the status code is what we expect.
 	if status := w.Code; status != http.StatusOK {
@@ -272,10 +255,15 @@ func TestDeleteProduct(t *testing.T) {
 	}
 
 	// Check the response body is what we expect.
-	expected := `[{"productid":1,"productname":"Firefighter Wallet","inventoryscanningid":1,"color":"Tan","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1},{"productid":3,"productname":"Firefighter Baby Outfit","inventoryscanningid":3,"color":"Tan","size":"Newborn","price":39.99,"dimensions":"Waist-14\", Length-10\"","sku":3}]`
-	equal, err := AreEqualJSON(w2.Body.String(), expected)
+	expected := `{"deleted": "true"}`
+	equal, err := AreEqualJSON(w.Body.String(), expected)
 	if !equal {
-		t.Errorf("handler returned unexpected body: got %v want %v", w2.Body.String(), expected)
+		t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), expected)
+	}
+
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expections: %s", err)
 	}
 }
 
@@ -286,14 +274,7 @@ func TestDeleteProductNonExistant(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	req2, err := http.NewRequest("GET", "/product", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	w := httptest.NewRecorder()
-
-	w2 := httptest.NewRecorder()
 
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -301,33 +282,31 @@ func TestDeleteProductNonExistant(t *testing.T) {
 	}
 	defer db.Close()
 
+	// before we actually execute our api function, we need to expect required DB actions
+	// rows := sqlmock.NewRows([]string{"productid", "productname", "notificationquantity", "color", "trimcolor", "size", "price", "dimensions", "sku", "deleted"}).
+	// 	AddRow(2, "Swing", 10, "test", "test", "test", 1, "test", 1, 0)
+
 	mock.ExpectBegin()
-	mock.ExpectExec("SELECT * FROM Product").WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectExec("INSERT INTO product_viewers").WithArgs(2, 3).WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectCommit()
+	mock.ExpectQuery("^SELECT (.+) FROM Product WHERE ProductID = \\?$").WillReturnError(fmt.Errorf("404 - Product not found"))
 
 	router := routes.InitRoutes(models.Env{db})
 
-	routes.Products = nil
-
-	routes.Products = append(routes.Products, models.Product{ProductID: 1, ProductName: "Firefighter Wallet", NotificationQuantity: 10, Color: "Tan", TrimColor: "Black", Price: 30, Dimensions: "3 1/2\" tall and 4 1/2\" long", SKU: 1})
-	routes.Products = append(routes.Products, models.Product{ProductID: 2, ProductName: "Firefighter Apron", NotificationQuantity: 20, Color: "Tan", TrimColor: "Black", Size: "One Size Fits All", Price: 29, Dimensions: "31\" tall and 26\" wide and ties around a waist up to 54\"", SKU: 2})
-	routes.Products = append(routes.Products, models.Product{ProductID: 3, ProductName: "Firefighter Baby Outfit", NotificationQuantity: 13, Color: "Tan", TrimColor: "Black", Size: "Newborn", Price: 39.99, Dimensions: "Waist-14\", Length-10\"", SKU: 3})
-
 	router.ServeHTTP(w, req)
 
-	router.ServeHTTP(w2, req2)
-
 	// Check the status code is what we expect.
-	if status := w.Code; status != http.StatusBadRequest {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
+	if status := w.Code; status != http.StatusNotFound {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusNotFound)
 	}
 
 	// Check the response body is what we expect.
-	expected := `[{"productid":1,"productname":"Firefighter Wallet","inventoryscanningid":1,"color":"Tan","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1},{"productid":2,"productname":"Firefighter Apron","inventoryscanningid":2,"color":"Tan","size":"One Size Fits All","price":29,"dimensions":"31\" tall and 26\" wide and ties around a waist up to 54\"","sku":2},{"productid":3,"productname":"Firefighter Baby Outfit","inventoryscanningid":3,"color":"Tan","size":"Newborn","price":39.99,"dimensions":"Waist-14\", Length-10\"","sku":3}]`
-	equal, err := AreEqualJSON(w2.Body.String(), expected)
-	if !equal {
-		t.Errorf("handler returned unexpected body: got %v want %v", w2.Body.String(), expected)
+	expected := `404 - Product not found`
+	if w.Body.String() != expected {
+		t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), expected)
+	}
+
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expections: %s", err)
 	}
 }
 
