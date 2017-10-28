@@ -231,35 +231,13 @@ func createProduct(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("ID = %d, affected = %d\n", lastId, rowCnt)
 	lstId := strconv.Itoa(int(lastId))
 	//Not sure what we want to return when sucess?
-	json.NewEncoder(w).Encode([]byte("{\"ProductId\": " + lstId + "}"))
+	w.Write([]byte("{\"ProductId\": " + lstId + "}"))
 }
 
 // Deletes the specified product from the database
 // If the route logic were seperate from the DB logic, we could just call a getproductbyID method that is used
 // by both
 func deleteProduct(w http.ResponseWriter, r *http.Request) {
-	/*params := mux.Vars(r)
-	id := params["id"]
-
-	for i, value := range Products {
-		productID, err := strconv.Atoi(id)
-		if err != nil || productID < 1 {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("400 - Invalid product ID."))
-			return
-		}
-
-		if value.ProductID == productID {
-			Products[i] = Products[len(Products)-1]
-			Products = Products[:len(Products)-1]
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-	}
-	w.WriteHeader(http.StatusBadRequest)
-	w.Write([]byte("400 - Invalid product ID."))*/
-
-	//new version
 	params := mux.Vars(r)
 	id := params["id"]
 	found := -1
@@ -327,10 +305,6 @@ func deleteProduct(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			fmt.Println(err)
 		}
-		// _, errr := stmt.Exec()
-		// if errr != nil {
-		// 	fmt.Println(err)
-		// }
 
 	}
 	w.Write([]byte(`{"deleted": "true"}`))
