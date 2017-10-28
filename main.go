@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	//"database/sql"
 
 	"github.com/Xero67/web-fire-family/models"
 	"github.com/Xero67/web-fire-family/routes"
