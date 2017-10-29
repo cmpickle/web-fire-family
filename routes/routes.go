@@ -7,8 +7,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/Xero67/web-fire-family/app"
-	"github.com/Xero67/web-fire-family/models"
+	"../app"
+	"../models"
 
 	_ "github.com/go-sql-driver/mysql"
 	//"image/color"

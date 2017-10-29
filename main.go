@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Xero67/web-fire-family/models"
-	"github.com/Xero67/web-fire-family/routes"
+	"../models"
+	"../routes"
 )
 
 func main() {
