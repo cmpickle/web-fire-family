@@ -121,9 +121,6 @@ func TestGetProductInvalidID(t *testing.T) {
 	}
 	defer db.Close()
 
-	// before we actually execute our api function, we need to expect required DB actions
-	// rows := sqlmock.NewRows([]string{"productid", "productname", "notificationquantity", "color", "trimcolor", "size", "price", "dimensions", "sku", "deleted"}).
-	// 	AddRow(1, "Firefighter Wallet", 10, "Tan", "Black", "size", 30, "3 1/2\" tall and 4 1/2\" long", 1, 0)
 	mock.ExpectBegin()
 	mock.ExpectQuery("^SELECT (.+) FROM Product WHERE ProductID = \\?$").WillReturnError(fmt.Errorf("404 - Product not found"))
 
@@ -178,14 +175,7 @@ func TestCreateProduct(t *testing.T) {
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	// req2, err := http.NewRequest("GET", "/product", nil)
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-
 	w := httptest.NewRecorder()
-
-	// w2 := httptest.NewRecorder()
 
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -200,8 +190,6 @@ func TestCreateProduct(t *testing.T) {
 	router := routes.InitRoutes(models.Env{db})
 
 	router.ServeHTTP(w, req)
-
-	// router.ServeHTTP(w2, req2)
 
 	// Check the status code is what we expect.
 	if status := w.Code; status != http.StatusOK {
@@ -281,10 +269,6 @@ func TestDeleteProductNonExistant(t *testing.T) {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 	defer db.Close()
-
-	// before we actually execute our api function, we need to expect required DB actions
-	// rows := sqlmock.NewRows([]string{"productid", "productname", "notificationquantity", "color", "trimcolor", "size", "price", "dimensions", "sku", "deleted"}).
-	// 	AddRow(2, "Swing", 10, "test", "test", "test", 1, "test", 1, 0)
 
 	mock.ExpectBegin()
 	mock.ExpectQuery("^SELECT (.+) FROM Product WHERE ProductID = \\?$").WillReturnError(fmt.Errorf("404 - Product not found"))
