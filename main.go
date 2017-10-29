@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"../models"
-	"../routes"
+	"./models"
+	"./routes"
 )
 
 func main() {
