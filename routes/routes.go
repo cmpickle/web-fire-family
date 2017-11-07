@@ -23,6 +23,7 @@ var dbConnection string
 // InitRoutes creates the web API routes and sets their event handler functions
 func InitRoutes(env models.Env) http.Handler {
 	router := mux.NewRouter()
+	router.Headers("Access-Control-Allow-Origin", "*")
 
 	db = env.Db
 
