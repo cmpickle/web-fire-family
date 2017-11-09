@@ -7,13 +7,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"../models"
+	"github.com/Xero67/web-fire-family/models"
 	"github.com/gorilla/mux"
 )
 
 // Returns all of the products stored in the database in JSON format
 func getProducts(w http.ResponseWriter, r *http.Request) {
-	r.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	tx, err := db.Begin()
 	if err != nil {
 		return
@@ -56,7 +56,7 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 
 // Returns a specific product from the database in JSON format
 func getProduct(w http.ResponseWriter, r *http.Request) {
-	r.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	params := mux.Vars(r)
 	id := params["id"]
 	found := -1
@@ -132,7 +132,7 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 // Not needed tho, def an extra thing
 // Creates a Product object from the passed in JSON Product and stores it in the database
 func createProduct(w http.ResponseWriter, r *http.Request) {
-	r.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	var product models.Product
 	err := json.NewDecoder(r.Body).Decode(&product)
 	if err != nil {
@@ -196,7 +196,7 @@ func createProduct(w http.ResponseWriter, r *http.Request) {
 // If the route logic were seperate from the DB logic, we could just call a getproductbyID method that is used
 // by both
 func deleteProduct(w http.ResponseWriter, r *http.Request) {
-	r.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	params := mux.Vars(r)
 	id := params["id"]
 	found := -1
@@ -272,7 +272,7 @@ func deleteProduct(w http.ResponseWriter, r *http.Request) {
 
 // Updates the product
 func updateProduct(w http.ResponseWriter, r *http.Request) {
-	r.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	var product models.Product
 	_ = json.NewDecoder(r.Body).Decode(&product)
 
