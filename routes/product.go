@@ -272,27 +272,27 @@ func deleteProduct(w http.ResponseWriter, r *http.Request) {
 
 // Updates the product
 func updateProduct(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	var product models.Product
-	_ = json.NewDecoder(r.Body).Decode(&product)
+	// w.Header().Set("Access-Control-Allow-Origin", "*")
+	// var product models.Product
+	// _ = json.NewDecoder(r.Body).Decode(&product)
 
-	params := mux.Vars(r)
-	id := params["id"]
+	// params := mux.Vars(r)
+	// id := params["id"]
 
-	for i, value := range Products {
-		productID, err := strconv.Atoi(id)
-		if err != nil || productID < 1 {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("400 - Invalid product ID."))
-			return
-		}
+	// for i, value := range Products {
+	// 	productID, err := strconv.Atoi(id)
+	// 	if err != nil || productID < 1 {
+	// 		w.WriteHeader(http.StatusBadRequest)
+	// 		w.Write([]byte("400 - Invalid product ID."))
+	// 		return
+	// 	}
 
-		if value.ProductID == productID {
-			Products[i] = product
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-	}
-	w.WriteHeader(http.StatusBadRequest)
-	w.Write([]byte("400 - Invalid product ID."))
+	// 	if value.ProductID == productID {
+	// 		Products[i] = product
+	// 		w.WriteHeader(http.StatusOK)
+	// 		return
+	// 	}
+	// }
+	// w.WriteHeader(http.StatusBadRequest)
+	// w.Write([]byte("400 - Invalid product ID."))
 }

@@ -365,12 +365,6 @@ func TestUpdateProductInvalidID(t *testing.T) {
 
 	router := routes.InitRoutes(models.Env{db})
 
-	routes.Products = nil
-
-	routes.Products = append(routes.Products, models.Product{ProductID: 1, ProductName: "Firefighter Wallet", NotificationQuantity: 10, Color: "Tan", TrimColor: "Black", Price: 30, Dimensions: "3 1/2\" tall and 4 1/2\" long", SKU: 1})
-	routes.Products = append(routes.Products, models.Product{ProductID: 2, ProductName: "Firefighter Apron", NotificationQuantity: 20, Color: "Tan", TrimColor: "Black", Size: "One Size Fits All", Price: 29, Dimensions: "31\" tall and 26\" wide and ties around a waist up to 54\"", SKU: 2})
-	routes.Products = append(routes.Products, models.Product{ProductID: 3, ProductName: "Firefighter Baby Outfit", NotificationQuantity: 13, Color: "Tan", TrimColor: "Black", Size: "Newborn", Price: 39.99, Dimensions: "Waist-14\", Length-10\"", SKU: 3})
-
 	router.ServeHTTP(w, req)
 
 	// Check the status code is what we expect.
