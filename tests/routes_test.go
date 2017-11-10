@@ -13,6 +13,8 @@ import (
 
 	"../models"
 	"../routes"
+	"../app"
+	"os"
 )
 
 func TestGetProducts(t *testing.T) {
@@ -401,4 +403,23 @@ func AreEqualJSON(s1, s2 string) (bool, error) {
 	}
 
 	return reflect.DeepEqual(o1, o2), nil
+}
+
+
+func TestSettingYamlVar() {
+	//arrange
+	var Dbdriver app.Dbdriver
+	var host string
+	var port int
+	var dbuser string
+	var dbpass string
+	var database string
+	host = "localhost"
+	port = 3306
+	dbuser = "test"
+	dbpass = "letmein"
+	database = "testDB"
+	//act
+
+	//verify
 }

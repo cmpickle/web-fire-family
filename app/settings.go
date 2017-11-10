@@ -30,7 +30,7 @@ type Dbdriver struct {
 	Dbpass string `yaml:"pass,omitempty"`
 	Port int `port:"port,omitempty"`
 }
-func (d Dbdriver) LoadSettings() (Dbdriver) {
+func (d Dbdriver) LoadSettingsDefault() (Dbdriver) {
 	// slurping the config.yml file into memory.  and allowing the yaml framework handle the data read
 	// This should get all setings from the file.
 	dat, err := ioutil.ReadFile("../config.yml")
@@ -48,4 +48,15 @@ func (web WebSettings) loadSettings() (WebSettings) {
 		log.Fatal("cannot unmarshal data %v" ,err)
 	}
 	return web
+}
+
+func (d Dbdriver) LoadSettings(s string) (DbDriver) {
+// slurping the config.yml file into memory.  and allowing the yaml framework handle the data read
+// This should get all setings from the file.
+dat, err := ioutil.ReadFile("../config.yml")
+yaml.Unmarshal(dat, &d)
+if err != nil {
+log.Fatal("cannot unmarshal data %v", err)
+}
+return d
 }

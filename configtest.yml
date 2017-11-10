@@ -4,6 +4,7 @@ WEB:
 mysql:
   driver: mysql
   host: localhost
-  user: ''
-  database: test
+  user: test
+  pass: letmein
+  database: testDB
   port: 3306
