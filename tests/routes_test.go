@@ -14,7 +14,7 @@ import (
 	"../models"
 	"../routes"
 	"../app"
-	//"os"
+	"os"
 )
 
 func TestGetProducts(t *testing.T) {
@@ -406,7 +406,7 @@ func AreEqualJSON(s1, s2 string) (bool, error) {
 }
 
 
-func TestSettingYamlVar(t *testing.T) {
+func TestSettingYamlVar() {
 	//arrange
 	var Dbdriver app.Dbdriver
 	var host string
@@ -420,37 +420,6 @@ func TestSettingYamlVar(t *testing.T) {
 	dbpass = "letmein"
 	database = "testDB"
 	//act
-	Dbdriver = Dbdriver.LoadSettings("../configtest.yml")
-	//assert
-	if host != Dbdriver.Host {
-		t.Fatalf("Unable to find host")
-	}
 
-	if port != Dbdriver.Port {
-		t.Fatalf("unable to find port")
-	}
-
-	if dbuser != Dbdriver.Dbuser {
-		t.Fatalf("unable to find dbusername")
-	}
-
-	if dbpass != Dbdriver.Dbpass {
-		t.Fatalf("Unable to find dbPass")
-	}
-
-	if database != Dbdriver.Database {
-		t.Fatalf("Missing database string")
-	}
-
-}
-
-func TestWebSettings (t *testing.T) {
-	 var port int = 8000
-	 var web app.Web
-
-	 web = web.LoadSettings("../configtest.yml")
-	 if port != web.Port {
-	 	t.Fatalf("Missing Webport")
-	 }
-
+	//verify
 }
