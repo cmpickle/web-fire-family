@@ -13,6 +13,8 @@ import (
 
 	"../models"
 	"../routes"
+	"../app"
+	//"os"
 )
 
 func TestGetProducts(t *testing.T) {
@@ -319,12 +321,6 @@ func TestUpdateProduct(t *testing.T) {
 
 	router := routes.InitRoutes(models.Env{db})
 
-	routes.Products = nil
-
-	routes.Products = append(routes.Products, models.Product{ProductID: 1, ProductName: "Firefighter Wallet", NotificationQuantity: 10, Color: "Tan", TrimColor: "Black", Price: 30, Dimensions: "3 1/2\" tall and 4 1/2\" long", SKU: 1})
-	routes.Products = append(routes.Products, models.Product{ProductID: 2, ProductName: "Firefighter Apron", NotificationQuantity: 20, Color: "Tan", TrimColor: "Black", Size: "One Size Fits All", Price: 29, Dimensions: "31\" tall and 26\" wide and ties around a waist up to 54\"", SKU: 2})
-	routes.Products = append(routes.Products, models.Product{ProductID: 3, ProductName: "Firefighter Baby Outfit", NotificationQuantity: 13, Color: "Tan", TrimColor: "Black", Size: "Newborn", Price: 39.99, Dimensions: "Waist-14\", Length-10\"", SKU: 3})
-
 	router.ServeHTTP(w, req)
 
 	// Check the status code is what we expect.
@@ -365,12 +361,6 @@ func TestUpdateProductInvalidID(t *testing.T) {
 
 	router := routes.InitRoutes(models.Env{db})
 
-	routes.Products = nil
-
-	routes.Products = append(routes.Products, models.Product{ProductID: 1, ProductName: "Firefighter Wallet", NotificationQuantity: 10, Color: "Tan", TrimColor: "Black", Price: 30, Dimensions: "3 1/2\" tall and 4 1/2\" long", SKU: 1})
-	routes.Products = append(routes.Products, models.Product{ProductID: 2, ProductName: "Firefighter Apron", NotificationQuantity: 20, Color: "Tan", TrimColor: "Black", Size: "One Size Fits All", Price: 29, Dimensions: "31\" tall and 26\" wide and ties around a waist up to 54\"", SKU: 2})
-	routes.Products = append(routes.Products, models.Product{ProductID: 3, ProductName: "Firefighter Baby Outfit", NotificationQuantity: 13, Color: "Tan", TrimColor: "Black", Size: "Newborn", Price: 39.99, Dimensions: "Waist-14\", Length-10\"", SKU: 3})
-
 	router.ServeHTTP(w, req)
 
 	// Check the status code is what we expect.
@@ -401,4 +391,54 @@ func AreEqualJSON(s1, s2 string) (bool, error) {
 	}
 
 	return reflect.DeepEqual(o1, o2), nil
+}
+
+
+func TestSettingYamlVar(t *testing.T) {
+	//arrange
+	var Dbdriver app.Dbdriver
+	var host string
+	var port int
+	var dbuser string
+	var dbpass string
+	var database string
+	host = "localhost"
+	port = 3306
+	dbuser = "test"
+	dbpass = "letmein"
+	database = "testDB"
+	//act
+	Dbdriver = Dbdriver.LoadSettings("../configtest.yml")
+	//assert
+	if host != Dbdriver.Host {
+		t.Fatalf("Unable to find host")
+	}
+
+	if port != Dbdriver.Port {
+		t.Fatalf("unable to find port")
+	}
+
+	if dbuser != Dbdriver.Dbuser {
+		t.Fatalf("unable to find dbusername")
+	}
+
+	if dbpass != Dbdriver.Dbpass {
+		t.Fatalf("Unable to find dbPass")
+	}
+
+	if database != Dbdriver.Database {
+		t.Fatalf("Missing database string")
+	}
+
+}
+
+func TestWebSettings (t *testing.T) {
+	 var port int = 8000
+	 var web app.Web
+
+	 web = web.LoadSettings("../configtest.yml")
+	 if port != web.Port {
+	 	t.Fatalf("Missing Webport")
+	 }
+
 }

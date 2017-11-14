@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	//"github.com/Xero67/web-fire-family/models"
 	"../models"
 	"github.com/gorilla/mux"
 )
@@ -141,7 +142,7 @@ func createProduct(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(product)
 
 	//new stuff
-	//probs want to check each required column
+	//probs want to validate each required column
 	if product.ProductName == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("400 - Invalid product, please include a name, notification quantity, color, trim color, size, price, dimensions, and SKU"))
@@ -278,21 +279,85 @@ func updateProduct(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	id := params["id"]
+	found := -1
 
-	for i, value := range Products {
-		productID, err := strconv.Atoi(id)
-		if err != nil || productID < 1 {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("400 - Invalid product ID."))
-			return
-		}
 
-		if value.ProductID == productID {
-			Products[i] = product
-			w.WriteHeader(http.StatusOK)
-			return
-		}
+	//new block
+	productID, err := strconv.Atoi(id)
+	if err != nil || productID < 1 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Invalid product ID."))
+		return
 	}
-	w.WriteHeader(http.StatusBadRequest)
-	w.Write([]byte("400 - Invalid product ID."))
+	tx, err := db.Begin()
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit()
+		default:
+			tx.Rollback()
+		}
+	}()
+
+	rows, err := tx.Query("SELECT * FROM Product WHERE ProductID = ?", id)
+	if err != nil {
+		//Error handlin
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("404 - Product not found"))
+		fmt.Errorf("404 - Product not found")
+		fmt.Println(err)
+		return
+	}
+	defer rows.Close()
+	prods := make([]*models.Product, 0)
+	for rows.Next() {
+
+		p := new(models.Product)
+		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU, &p.Deleted)
+		if err != nil {
+			//More error handling
+			fmt.Println("2")
+			fmt.Println(err)
+		}
+		if p.Deleted == 0 {
+			prods = append(prods, p)
+		}
+		found = productID
+	}
+	if err = rows.Err(); err != nil {
+		//Error handling
+		fmt.Println("3")
+		fmt.Println(err)
+	}
+
+	if found == -1 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Invalid product ID."))
+		return
+	} else { //All deletion logic goes here because it confirms the find
+		//need to do validation here
+		res, err := tx.Exec("UPDATE Product SET ProductName = ?, NotificationQuantity = ?, Color = ?, TrimColor = ?, Size = ?, Price = ?, Dimensions = ?, SKU = ? WHERE ProductID = ?", product.ProductName, product.NotificationQuantity, product.Color, product.TrimColor, product.Size, product.Price, product.Dimensions, product.SKU, prods[0].ProductID)
+		if err != nil {
+			fmt.Println(err)
+			fmt.Println("1")
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("400 - Invalid product, please include a name, notification quantity, color, trim color, size, price, dimensions, and SKU"))
+			return
+		}
+		rowCnt, err := res.RowsAffected()
+		if err != nil {
+			fmt.Println("4")
+			fmt.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("400 - Insert failed"))
+			return
+		}
+		fmt.Printf("update affected = %d\n", rowCnt)
+		//Not sure what we want to return when success?
+		w.WriteHeader(http.StatusAccepted);
+	}
 }

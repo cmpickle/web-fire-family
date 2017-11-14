@@ -1,10 +1,7 @@
-WEB:
-  port: 8000
-
-mysql:
-  driver: mysql
-  host: 169.227.17.104
-  user: fireadmin
-  pass: FireFamily@1
-  database: Fire_Family
-  port: 3306
+webport: 8000
+driver: mysql
+host: 169.227.17.104
+user: fireadmin
+pass: FireFamily@1
+database: Fire_Family
+port: 3306
