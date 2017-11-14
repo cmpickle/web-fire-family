@@ -7,8 +7,11 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"../app"
+	//"github.com/Xero67/web-fire-family/app"
+	//"github.com/Xero67/web-fire-family/models"
 	"../models"
+	"../app"
+
 
 	_ "github.com/go-sql-driver/mysql"
 	//"image/color"
@@ -42,6 +45,10 @@ func InitRoutes(env models.Env) http.Handler {
 	router.HandleFunc("/product/update/{id}", updateProduct).Methods("PUT")
 	//This sets the product to inactive in the database
 	router.HandleFunc("/product/delete/{id}", deleteProduct).Methods("DELETE")
+	//This gets the inventory values
+	router.HandleFunc("/inventories", getInventories).Methods("GET")
+	//This gets the inventory value
+	router.HandleFunc("/inventory/{id}", getInventory).Methods("GET")
 	//This allows us to set the quantity value of a product.
 	router.HandleFunc("/inventory/update/{id}/{quantity}", updateInventory).Methods("PUT")
 
