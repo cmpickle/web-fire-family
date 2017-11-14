@@ -281,20 +281,6 @@ func updateProduct(w http.ResponseWriter, r *http.Request) {
 	id := params["id"]
 	found := -1
 
-	for i, value := range Products {
-		productID, err := strconv.Atoi(id)
-		if err != nil || productID < 1 {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("400 - Invalid product ID."))
-			return
-		}
-		//from here down just duplicate the create product route?
-		if value.ProductID == productID {
-			Products[i] = product
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-	}
 
 	//new block
 	productID, err := strconv.Atoi(id)
