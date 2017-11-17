@@ -331,16 +331,9 @@ func TestUpdateProduct(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	// Check the status code is what we expect.
-	if status := w.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+	if status := w.Code; status != http.StatusAccepted {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusAccepted)
 	}
-
-	// // Check the response body is what we expect.
-	// expected := `[{"productid":1,"productname":"Firefighter Wallet","inventoryscanningid":1,"color":"Tan","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1},{"productid":4,"productname":"Firefighter Stuff","inventoryscanningid":1,"color":"Tan","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1},{"productid":3,"productname":"Firefighter Baby Outfit","inventoryscanningid":3,"color":"Tan","size":"Newborn","price":39.99,"dimensions":"Waist-14\", Length-10\"","sku":3}]`
-	// equal, err := AreEqualJSON(w2.Body.String(), expected)
-	// if !equal {
-	// 	t.Errorf("handler returned unexpected body: got %v want %v", w2.Body.String(), expected)
-	// }
 
 	// we make sure that all expectations were met
 	if err := mock.ExpectationsWereMet(); err != nil {
