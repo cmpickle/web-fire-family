@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	//"github.com/Xero67/web-fire-family/models"
-	"../models"
+	"github.com/Xero67/web-fire-family/models"
+	// "../models"
 	"github.com/gorilla/mux"
 )
 

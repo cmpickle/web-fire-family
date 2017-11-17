@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"strconv"
 
-	//"github.com/Xero67/web-fire-family/models"
-	"../models"
+	"github.com/Xero67/web-fire-family/models"
+	// "../models"
 	"github.com/gorilla/mux"
 )
 
@@ -281,7 +281,6 @@ func updateProduct(w http.ResponseWriter, r *http.Request) {
 	id := params["id"]
 	found := -1
 
-
 	//new block
 	productID, err := strconv.Atoi(id)
 	if err != nil || productID < 1 {
@@ -358,6 +357,6 @@ func updateProduct(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Printf("update affected = %d\n", rowCnt)
 		//Not sure what we want to return when success?
-		w.WriteHeader(http.StatusAccepted);
+		w.WriteHeader(http.StatusAccepted)
 	}
 }
