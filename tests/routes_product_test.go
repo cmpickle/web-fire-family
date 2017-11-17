@@ -359,29 +359,21 @@ func TestUpdateProductInvalidID(t *testing.T) {
 	}
 	defer db.Close()
 
-	// before we actually execute our api function, we need to expect required DB actions
-	rows := sqlmock.NewRows([]string{"productid", "productname", "notificationquantity", "color", "trimcolor", "size", "price", "dimensions", "sku", "deleted"}).
-		AddRow(2, "Swing", 10, "test", "test", "test", 1, "test", 1, 0)
-
 	mock.ExpectBegin()
-	mock.ExpectQuery("^SELECT (.+) FROM Product WHERE ProductID = \\?$").WillReturnRows(rows)
-	mock.ExpectExec("^UPDATE Product SET ProductName = \\?, NotificationQuantity = \\?, Color = \\?, TrimColor = \\?, Size = \\?, Price = \\?, Dimensions = \\?, SKU = \\? WHERE ProductID = \\?$").WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectCommit()
+	mock.ExpectQuery("^SELECT (.+) FROM Product WHERE ProductID = \\?$").WillReturnError(fmt.Errorf("404 - Product not found")) //.WillReturnRows(rows)
 
 	router := routes.InitRoutes(models.Env{db})
 
 	router.ServeHTTP(w, req)
 
 	// Check the status code is what we expect.
-	if status := w.Code; status != http.StatusBadRequest {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
+	if status := w.Code; status != http.StatusNotFound {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusNotFound)
 	}
 
-	// Check the response body is what we expect.
-	expected := `[{"productid":1,"productname":"Firefighter Wallet","inventoryscanningid":1,"color":"Tan","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1},{"productid":2,"productname":"Firefighter Apron","inventoryscanningid":2,"color":"Tan","size":"One Size Fits All","price":29,"dimensions":"31\" tall and 26\" wide and ties around a waist up to 54\"","sku":2},{"productid":3,"productname":"Firefighter Baby Outfit","inventoryscanningid":3,"color":"Tan","size":"Newborn","price":39.99,"dimensions":"Waist-14\", Length-10\"","sku":3}]`
-	equal, err := AreEqualJSON(w.Body.String(), expected)
-	if !equal {
-		t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), expected)
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expections: %s", err)
 	}
 }
 
