@@ -33,9 +33,9 @@ func InitRoutes(env models.Env) http.Handler {
 	//This creates a new product using a Json String.
 	router.HandleFunc("/product/create", createProduct).Methods("POST")
 	//This updates a product using a Json String.
-	router.HandleFunc("/product/update/{sku}", updateProduct).Methods("PUT")
+	router.HandleFunc("/product/update/{sku}", updateProductBySKU).Methods("PUT")
 	//This sets the product to inactive in the database.
-	router.HandleFunc("/product/delete/{sku}", deleteProduct).Methods("DELETE")
+	router.HandleFunc("/product/delete/{sku}", deleteProductBySKU).Methods("DELETE")
 	//This gets the inventory values.
 	router.HandleFunc("/inventories", getInventories).Methods("GET")
 	//This gets the inventory value.
