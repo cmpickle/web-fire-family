@@ -124,6 +124,77 @@ func getInventory(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(inv)
 }
 
+// Returns a specific inventory from the database in JSON format
+func getInventoryBySKU(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	params := mux.Vars(r)
+	sku := params["sku"]
+	found := -1
+
+	productSKU, err := strconv.Atoi(sku)
+	if productSKU < 1 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Invalid product SKU."))
+		return
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit()
+		default:
+			tx.Rollback()
+		}
+	}()
+
+	var rows *sql.Rows
+	if rows, err = tx.Query("SELECT * FROM Inventory INNER JOIN Product ON Inventory.ProductID = Product.ProductID WHERE SKU = ?", sku); err != nil {
+		fmt.Println("inventory.go - getInventoryBySKU - tx.Query error selecting inventory sku: " + sku)
+		fmt.Println(err)
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+	defer rows.Close()
+
+	inv := make([]*models.Inventory, 0)
+	for rows.Next() {
+		i := new(models.Inventory)
+		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.ProductID, &i.Deleted)
+		if err != nil {
+			//More error handling
+			fmt.Println("2")
+			fmt.Println(err)
+		}
+		if i.Deleted == 1 {
+			inv = append(inv, i)
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("404 - Product not found"))
+			return
+		}
+		found = productSKU
+		inv = append(inv, i)
+	}
+	if err = rows.Err(); err != nil {
+		//Error handling
+		fmt.Println("inventory.go - getInventoryBySKU - rows.Err()")
+		fmt.Println(err)
+	}
+
+	//STILL NEED THIS FOR IF ITS NOT FOUND
+	if found == -1 {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("404 - Inventory not found"))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(inv)
+}
+
 // Updates the inventory value for the inventory item
 func updateInventory(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)

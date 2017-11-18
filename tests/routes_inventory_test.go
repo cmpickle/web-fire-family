@@ -139,7 +139,7 @@ func TestGetInventoryInvalidID(t *testing.T) {
 
 func TestGetInventoryBySKU(t *testing.T) {
 	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
-	req, err := http.NewRequest("GET", "/productbysku/1", nil)
+	req, err := http.NewRequest("GET", "/inventorybysku/1", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -153,10 +153,10 @@ func TestGetInventoryBySKU(t *testing.T) {
 	defer db.Close()
 
 	// before we actually execute our api function, we need to expect required DB actions
-	rows := sqlmock.NewRows([]string{"productid", "productname", "notificationquantity", "color", "trimcolor", "size", "price", "dimensions", "sku", "deleted"}).
-		AddRow(1, "Firefighter Wallet", 10, "Tan", "Black", "size", 30, "3 1/2\" tall and 4 1/2\" long", 1, 0)
+	rows := sqlmock.NewRows([]string{"inventoryid", "quantity", "datelastupdated", "productid", "deleted"}).
+		AddRow(1, 10, "11/17/2017", 1, 0)
 	mock.ExpectBegin()
-	mock.ExpectQuery("^SELECT (.+) FROM Product WHERE SKU = \\?$").WillReturnRows(rows)
+	mock.ExpectQuery("^SELECT (.+) FROM Inventory INNER JOIN Product ON Inventory.ProductID = Product.ProductID WHERE SKU = \\?$").WillReturnRows(rows)
 	mock.ExpectCommit()
 
 	router := routes.InitRoutes(models.Env{db})
@@ -169,7 +169,7 @@ func TestGetInventoryBySKU(t *testing.T) {
 	}
 
 	// Check the response body is what we expect.
-	expected := `[{"productid":1,"productname":"Firefighter Wallet","notificationquantity":10,"color":"Tan","trimcolor":"Black","size":"size","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1}]`
+	expected := `[{"inventoryid":1,"quantity":10,"datelastupdated":"11/17/2017","productid":1}]`
 	equal, err := AreEqualJSON(w.Body.String(), expected)
 	if !equal {
 		t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), expected)
