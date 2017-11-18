@@ -30,14 +30,14 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var rows *sql.Rows
-	if rows, err = tx.Query("SELECT * FROM Product"); err != nil {
+	if rows, err = tx.Query("SELECT P.*, I.Quantity FROM Product P INNER JOIN Inventory I ON Product.ProductID = Inventory.ProductID "); err != nil {
 		return
 	}
 
 	prods := make([]*models.Product, 0)
 	for rows.Next() {
 		p := new(models.Product)
-		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU, &p.Deleted)
+		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU, &p.Deleted, &p.Quantity)
 		if err != nil {
 			//More error handling
 			fmt.Println("routes.go - getProducts - rows.Scan error")
@@ -84,7 +84,7 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var rows *sql.Rows
-	if rows, err = tx.Query("SELECT * FROM Product WHERE ProductID = ?", id); err != nil {
+	if rows, err = tx.Query("SELECT P.*, I.Quantity FROM Product P INNER JOIN Inventory I ON Product.ProductID = Inventory.ProductID  WHERE P.ProductID = ?", id); err != nil {
 		fmt.Println("routes.go - getProduct - tx.Query error selecting product id: " + id)
 		fmt.Println(err)
 		json.NewEncoder(w).Encode(err)
@@ -95,7 +95,7 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 	prods := make([]*models.Product, 0)
 	for rows.Next() {
 		p := new(models.Product)
-		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU, &p.Deleted)
+		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU, &p.Deleted, &p.Quantity)
 		if err != nil {
 			//More error handling
 			fmt.Println("2")
@@ -156,7 +156,7 @@ func getProductBySKU(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var rows *sql.Rows
-	if rows, err = tx.Query("SELECT * FROM Product WHERE SKU = ?", sku); err != nil {
+	if rows, err = tx.Query("SELECT P.*, I.Quantity FROM Product P INNER JOIN Inventory I ON Product.ProductID = Inventory.ProductID  WHERE P.SKU = ?", sku); err != nil {
 		fmt.Println("routes.go - getProduct - tx.Query error selecting product sku: " + sku)
 		fmt.Println(err)
 		json.NewEncoder(w).Encode(err)
@@ -167,7 +167,7 @@ func getProductBySKU(w http.ResponseWriter, r *http.Request) {
 	prods := make([]*models.Product, 0)
 	for rows.Next() {
 		p := new(models.Product)
-		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU, &p.Deleted)
+		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU, &p.Deleted, &p.Quantity)
 		if err != nil {
 			//More error handling
 			fmt.Println("2")
