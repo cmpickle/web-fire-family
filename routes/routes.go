@@ -7,10 +7,10 @@ import (
 
 	"github.com/gorilla/mux"
 
-	// "../app"
-	// "../models"
-	"github.com/Xero67/web-fire-family/app"
-	"github.com/Xero67/web-fire-family/models"
+	"../app"
+	"../models"
+	// "github.com/Xero67/web-fire-family/app"
+	// "github.com/Xero67/web-fire-family/models"
 )
 
 var db *sql.DB
