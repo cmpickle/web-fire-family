@@ -255,10 +255,10 @@ func TestUpdateInventory(t *testing.T) {
 }
 
 func TestUpdateInventoryInvalidID(t *testing.T) {
-	data := []byte(`{"productid":4,"productname":"Firefighter Stuff","inventoryscanningid":1,"color":"Tan","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1}`)
+	data := []byte(`{"inventoryid":1,"quantity":10,"datelastupdated":"11/17/2017","productid":1,"deleted":1}`)
 
 	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
-	req, err := http.NewRequest("PUT", "/product/update/8", bytes.NewBuffer(data))
+	req, err := http.NewRequest("PUT", "/inventory/update/800/1", bytes.NewBuffer(data))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -273,7 +273,7 @@ func TestUpdateInventoryInvalidID(t *testing.T) {
 	defer db.Close()
 
 	mock.ExpectBegin()
-	mock.ExpectQuery("^SELECT (.+) FROM Product WHERE ProductID = \\?$").WillReturnError(fmt.Errorf("404 - Product not found")) //.WillReturnRows(rows)
+	mock.ExpectQuery("^SELECT (.+) FROM Inventory WHERE InventoryID = \\?$").WillReturnError(fmt.Errorf("404 - Inventory not found"))
 
 	router := routes.InitRoutes(models.Env{db})
 

@@ -231,6 +231,7 @@ func updateInventory(w http.ResponseWriter, r *http.Request) {
 
 	var rows *sql.Rows
 	if rows, err = tx.Query("SELECT * FROM Inventory WHERE InventoryID = ?", id); err != nil {
+		w.WriteHeader(http.StatusNotFound)
 		fmt.Println("inventory.go - getInventory - tx.Query error selecting inventory id: " + id)
 		fmt.Println(err)
 		json.NewEncoder(w).Encode(err)
