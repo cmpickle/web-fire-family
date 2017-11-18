@@ -62,7 +62,6 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 	id := params["id"]
 	found := -1
 
-	//new stuff can easily change to work off of SKU
 	productID, err := strconv.Atoi(id)
 	if productID < 1 {
 		w.WriteHeader(http.StatusBadRequest)
@@ -122,6 +121,77 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("404 - Product not found"))
 		// json.NewEncoder(w).Encode("404 - Product not found")
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(prods)
+}
+
+// Returns a specific product from the database in JSON format
+func getProductBySKU(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	params := mux.Vars(r)
+	sku := params["sku"]
+	found := -1
+
+	productSKU, err := strconv.Atoi(sku)
+	if productSKU < 1 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Invalid product SKU."))
+		return
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit()
+		default:
+			tx.Rollback()
+		}
+	}()
+
+	var rows *sql.Rows
+	if rows, err = tx.Query("SELECT * FROM Product WHERE SKU = ?", sku); err != nil {
+		fmt.Println("routes.go - getProduct - tx.Query error selecting product sku: " + sku)
+		fmt.Println(err)
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+	defer rows.Close()
+
+	prods := make([]*models.Product, 0)
+	for rows.Next() {
+		p := new(models.Product)
+		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU, &p.Deleted)
+		if err != nil {
+			//More error handling
+			fmt.Println("2")
+			fmt.Println(err)
+		}
+		if p.Deleted == 1 {
+			prods = append(prods, p)
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("404 - Product not found"))
+			return
+		}
+		found = productSKU
+		prods = append(prods, p)
+	}
+	if err = rows.Err(); err != nil {
+		//Error handling
+		fmt.Println("routes.go - getProduct - rows.Err()")
+		fmt.Println(err)
+	}
+
+	//STILL NEED THIS FOR IF ITS NOT FOUND
+	if found == -1 {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("404 - Product not found"))
 		return
 	}
 	w.WriteHeader(http.StatusOK)

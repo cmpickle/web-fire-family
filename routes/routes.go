@@ -28,6 +28,8 @@ func InitRoutes(env models.Env) http.Handler {
 	router.HandleFunc("/product", getProducts).Methods("GET")
 	// This should bring back a specific Product.
 	router.HandleFunc("/product/{id}", getProduct).Methods("GET")
+	// This should bring back a specific Product.
+	router.HandleFunc("/productbysku/{sku}", getProductBySKU).Methods("GET")
 	//This creates a new product using a Json String.
 	router.HandleFunc("/product/create", createProduct).Methods("POST")
 	//This updates a product using a Json String.

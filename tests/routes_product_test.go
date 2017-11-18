@@ -139,6 +139,50 @@ func TestGetProductInvalidID(t *testing.T) {
 	}
 }
 
+func TestGetProductBySKU(t *testing.T) {
+	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
+	req, err := http.NewRequest("GET", "/productbysku/1", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	w := httptest.NewRecorder()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	// before we actually execute our api function, we need to expect required DB actions
+	rows := sqlmock.NewRows([]string{"productid", "productname", "notificationquantity", "color", "trimcolor", "size", "price", "dimensions", "sku", "deleted"}).
+		AddRow(1, "Firefighter Wallet", 10, "Tan", "Black", "size", 30, "3 1/2\" tall and 4 1/2\" long", 1, 0)
+	mock.ExpectBegin()
+	mock.ExpectQuery("^SELECT (.+) FROM Product WHERE SKU = \\?$").WillReturnRows(rows)
+	mock.ExpectCommit()
+
+	router := routes.InitRoutes(models.Env{db})
+
+	router.ServeHTTP(w, req)
+
+	// Check the status code is what we expect.
+	if status := w.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+	}
+
+	// Check the response body is what we expect.
+	expected := `[{"productid":1,"productname":"Firefighter Wallet","notificationquantity":10,"color":"Tan","trimcolor":"Black","size":"size","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1}]`
+	equal, err := AreEqualJSON(w.Body.String(), expected)
+	if !equal {
+		t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), expected)
+	}
+
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expections: %s", err)
+	}
+}
+
 func TestGetProductNegativeID(t *testing.T) {
 	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
 	req, err := http.NewRequest("GET", "/product/-1", nil)
