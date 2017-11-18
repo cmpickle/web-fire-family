@@ -29,14 +29,14 @@ func getInventories(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var rows *sql.Rows
-	if rows, err = tx.Query("SELECT * FROM Inventory"); err != nil {
+	if rows, err = tx.Query("SELECT I.*, P.SKU FROM Inventory I INNER JOIN Product P ON P.ProductID = I.ProductID"); err != nil {
 		return
 	}
 
 	inv := make([]*models.Inventory, 0)
 	for rows.Next() {
 		i := new(models.Inventory)
-		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.ProductID, &i.Deleted, &i.SKU)
+		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.Deleted, &i.ProductID, &i.SKU)
 		if err != nil {
 			//More error handling
 			fmt.Println("routes.go - getInventory - rows.Scan error")
@@ -82,7 +82,7 @@ func getInventory(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var rows *sql.Rows
-	if rows, err = tx.Query("SELECT * FROM Inventory WHERE InventoryID = ?", id); err != nil {
+	if rows, err = tx.Query("SELECT I.*, P.SKU FROM Inventory I INNER JOIN Product P ON P.ProductID = I.ProductID WHERE I.ProductID = ?", id); err != nil {
 		fmt.Println("inventory.go - getInventory - tx.Query error selecting inventory id: " + id)
 		fmt.Println(err)
 		json.NewEncoder(w).Encode(err)
@@ -93,7 +93,7 @@ func getInventory(w http.ResponseWriter, r *http.Request) {
 	inv := make([]*models.Inventory, 0)
 	for rows.Next() {
 		i := new(models.Inventory)
-		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.ProductID, &i.Deleted, &i.SKU)
+		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.Deleted, &i.ProductID, &i.SKU)
 		if err != nil {
 			//More error handling
 			fmt.Println("2")
@@ -154,7 +154,7 @@ func getInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 
 	// former fancy join line, rows, err = tx.Query("SELECT * FROM Inventory INNER JOIN Product ON Inventory.ProductID = Product.ProductID WHERE SKU = ?", sku); err != nil
 	var rows *sql.Rows
-	if rows, err = tx.Query("SELECT * FROM Inventory WHERE SKU = ?", sku); err != nil {
+	if rows, err = tx.Query("SELECT I.*, P.SKU FROM Inventory I INNER JOIN Product P ON I.ProductID = P.ProductID WHERE P.SKU = ?", sku); err != nil {
 		fmt.Println("inventory.go - getInventoryBySKU - tx.Query error selecting inventory sku: " + sku)
 		fmt.Println(err)
 		json.NewEncoder(w).Encode(err)
@@ -165,7 +165,7 @@ func getInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 	inv := make([]*models.Inventory, 0)
 	for rows.Next() {
 		i := new(models.Inventory)
-		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.ProductID, &i.Deleted, &i.SKU)
+		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.Deleted, &i.ProductID, &i.SKU)
 		if err != nil {
 			//More error handling
 			fmt.Println("2")
@@ -231,7 +231,7 @@ func updateInventory(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var rows *sql.Rows
-	if rows, err = tx.Query("SELECT * FROM Inventory WHERE InventoryID = ?", id); err != nil {
+	if rows, err = tx.Query("SELECT I.*, P.SKU FROM Inventory I INNER JOIN Product P ON I.ProductID = P.ProductID WHERE I.InventoryID = ?", id); err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		fmt.Println("inventory.go - getInventory - tx.Query error selecting inventory id: " + id)
 		fmt.Println(err)
@@ -243,7 +243,7 @@ func updateInventory(w http.ResponseWriter, r *http.Request) {
 	inv := make([]*models.Inventory, 0)
 	for rows.Next() {
 		i := new(models.Inventory)
-		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.ProductID, &i.Deleted, &i.SKU)
+		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.Deleted, &i.ProductID, &i.SKU)
 		if err != nil {
 			//More error handling
 			fmt.Println("2")
@@ -271,7 +271,7 @@ func updateInventory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := tx.Exec("UPDATE Inventory SET InventoryID = ?, Quantity = ?, DateLastUpdated = ?, ProductID = ?, Deleted = ?, SKU = ? WHERE InventoryID = ?", inv[0].InventoryID, params["quantity"], time.Now(), inv[0].ProductID, inv[0].Deleted, inv[0].SKU, id)
+	res, err := tx.Exec("UPDATE Inventory SET InventoryID = ?, Quantity = ?, DateLastUpdated = ?, Deleted = ?, ProductID = ? WHERE InventoryID = ?", inv[0].InventoryID, params["quantity"], time.Now(), inv[0].Deleted, inv[0].ProductID, id)
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println("1")
@@ -328,7 +328,7 @@ func updateInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var rows *sql.Rows
-	if rows, err = tx.Query("SELECT * FROM Inventory WHERE SKU = ?", sku); err != nil {
+	if rows, err = tx.Query("SELECT I.*, P.SKU FROM Inventory I INNER JOIN Product P on P.ProductID = I.ProductID WHERE P.SKU = ?", sku); err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		fmt.Println("inventory.go - getInventory - tx.Query error selecting inventory sku: " + sku)
 		fmt.Println(err)
@@ -340,7 +340,7 @@ func updateInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 	inv := make([]*models.Inventory, 0)
 	for rows.Next() {
 		i := new(models.Inventory)
-		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.ProductID, &i.Deleted, &i.SKU)
+		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.Deleted, &i.ProductID, &i.SKU)
 		if err != nil {
 			//More error handling
 			fmt.Println("2")
@@ -368,7 +368,7 @@ func updateInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := tx.Exec("UPDATE Inventory SET InventoryID = ?, Quantity = ?, DateLastUpdated = ?, ProductID = ?, Deleted = ?, SKU = ? WHERE SKU = ?", inv[0].InventoryID, params["quantity"], time.Now(), inv[0].ProductID, inv[0].Deleted, inv[0].SKU, sku)
+	res, err := tx.Exec("UPDATE Inventory SET InventoryID = ?, Quantity = ?, DateLastUpdated = ?, Deleted = ?, ProductID = ? WHERE InventoryID = ?", inv[0].InventoryID, params["quantity"], time.Now(), inv[0].Deleted, inv[0].ProductID, inv[0].InventoryID)
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println("1")
@@ -425,7 +425,7 @@ func incrementInventory(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var rows *sql.Rows
-	if rows, err = tx.Query("SELECT * FROM Inventory WHERE InventoryID = ?", id); err != nil {
+	if rows, err = tx.Query("SELECT I.*, P.SKU FROM Inventory I INNER JOIN Product P on P.ProductID = I.ProductID WHERE I.InventoryID = ?", id); err != nil {
 		fmt.Println("inventory.go - getInventory - tx.Query error selecting inventory id: " + id)
 		fmt.Println(err)
 		json.NewEncoder(w).Encode(err)
@@ -436,7 +436,7 @@ func incrementInventory(w http.ResponseWriter, r *http.Request) {
 	inv := make([]*models.Inventory, 0)
 	for rows.Next() {
 		i := new(models.Inventory)
-		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.ProductID, &i.Deleted, &i.SKU)
+		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.Deleted, &i.ProductID, &i.SKU)
 		if err != nil {
 			//More error handling
 			fmt.Println("2")
@@ -464,7 +464,7 @@ func incrementInventory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rows, err = tx.Query("UPDATE Inventory SET InventoryID = ?, Quantity = ?, DateLastUpdated = ?, ProductID = ?, Deleted = ?, SKU = ? WHERE InventoryID = ?", inv[0].InventoryID, inv[0].Quantity+1, time.Now(), inv[0].ProductID, inv[0].Deleted, inv[0].SKU, id); err != nil {
+	if rows, err = tx.Query("UPDATE Inventory SET InventoryID = ?, Quantity = ?, DateLastUpdated = ?, Deleted = ?, ProductID = ? WHERE InventoryID = ?", inv[0].InventoryID, inv[0].Quantity+1, time.Now(), inv[0].Deleted, inv[0].ProductID, id); err != nil {
 		fmt.Println("inventory.go - getInventory - tx.Query error selecting inventory id: " + id)
 		fmt.Println(err)
 		json.NewEncoder(w).Encode(err)
@@ -509,7 +509,7 @@ func incrementInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var rows *sql.Rows
-	if rows, err = tx.Query("SELECT * FROM Inventory WHERE SKU = ?", sku); err != nil {
+	if rows, err = tx.Query("SELECT I.*, P.SKU FROM Inventory I INNER JOIN Product P on P.ProductID = I.ProductID WHERE P.SKU = ?", sku); err != nil {
 		fmt.Println("inventory.go - getInventory - tx.Query error selecting inventory id: " + sku)
 		fmt.Println(err)
 		json.NewEncoder(w).Encode(err)
@@ -520,7 +520,7 @@ func incrementInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 	inv := make([]*models.Inventory, 0)
 	for rows.Next() {
 		i := new(models.Inventory)
-		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.ProductID, &i.Deleted, &i.SKU)
+		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.Deleted, &i.ProductID, &i.SKU)
 		if err != nil {
 			//More error handling
 			fmt.Println("2")
@@ -548,7 +548,7 @@ func incrementInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rows, err = tx.Query("UPDATE Inventory SET InventoryID = ?, Quantity = ?, DateLastUpdated = ?, ProductID = ?, Deleted = ?, SKU = ? WHERE InventoryID = ?", inv[0].InventoryID, inv[0].Quantity+1, time.Now(), inv[0].ProductID, inv[0].Deleted, inv[0].SKU, sku); err != nil {
+	if rows, err = tx.Query("UPDATE Inventory SET InventoryID = ?, Quantity = ?, DateLastUpdated = ?, Deleted = ?, ProductID = ? WHERE InventoryID = ?", inv[0].InventoryID, inv[0].Quantity+1, time.Now(), inv[0].Deleted, inv[0].ProductID, inv[0].InventoryID); err != nil {
 		fmt.Println("inventory.go - getInventory - tx.Query error selecting inventory id: " + sku)
 		fmt.Println(err)
 		json.NewEncoder(w).Encode(err)
@@ -593,7 +593,7 @@ func decrementInventory(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var rows *sql.Rows
-	if rows, err = tx.Query("SELECT * FROM Inventory WHERE InventoryID = ?", id); err != nil {
+	if rows, err = tx.Query("SELECT I.*, P.SKU FROM Inventory I INNER JOIN Product P on P.ProductID = I.ProductID WHERE I.InventoryID = ?", id); err != nil {
 		fmt.Println("inventory.go - getInventory - tx.Query error selecting inventory id: " + id)
 		fmt.Println(err)
 		json.NewEncoder(w).Encode(err)
@@ -604,7 +604,7 @@ func decrementInventory(w http.ResponseWriter, r *http.Request) {
 	inv := make([]*models.Inventory, 0)
 	for rows.Next() {
 		i := new(models.Inventory)
-		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.ProductID, &i.Deleted, &i.SKU)
+		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.Deleted, &i.ProductID, &i.SKU)
 		if err != nil {
 			//More error handling
 			fmt.Println("2")
@@ -632,7 +632,7 @@ func decrementInventory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rows, err = tx.Query("UPDATE Inventory SET InventoryID = ?, Quantity = ?, DateLastUpdated = ?, ProductID = ?, Deleted = ?, SKU = ? WHERE InventoryID = ?", inv[0].InventoryID, inv[0].Quantity-1, time.Now(), inv[0].ProductID, inv[0].Deleted, inv[0].SKU, id); err != nil {
+	if rows, err = tx.Query("UPDATE Inventory SET InventoryID = ?, Quantity = ?, DateLastUpdated = ?, Deleted = ?, ProductID = ? WHERE InventoryID = ?", inv[0].InventoryID, inv[0].Quantity-1, time.Now(), inv[0].Deleted, inv[0].ProductID, id); err != nil {
 		fmt.Println("inventory.go - getInventory - tx.Query error selecting inventory id: " + id)
 		fmt.Println(err)
 		json.NewEncoder(w).Encode(err)
@@ -677,7 +677,7 @@ func decrementInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var rows *sql.Rows
-	if rows, err = tx.Query("SELECT * FROM Inventory WHERE SKU = ?", sku); err != nil {
+	if rows, err = tx.Query("SELECT I.*, P.SKU FROM Inventory I INNER JOIN Product P on P.ProductID = I.ProductID WHERE P.SKU = ?", sku); err != nil {
 		fmt.Println("inventory.go - getInventory - tx.Query error selecting inventory id: " + sku)
 		fmt.Println(err)
 		json.NewEncoder(w).Encode(err)
@@ -688,7 +688,7 @@ func decrementInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 	inv := make([]*models.Inventory, 0)
 	for rows.Next() {
 		i := new(models.Inventory)
-		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.ProductID, &i.Deleted, &i.SKU)
+		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.Deleted, &i.ProductID, &i.SKU)
 		if err != nil {
 			//More error handling
 			fmt.Println("2")
@@ -716,7 +716,7 @@ func decrementInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rows, err = tx.Query("UPDATE Inventory SET InventoryID = ?, Quantity = ?, DateLastUpdated = ?, ProductID = ?, Deleted = ?, SKU = ? WHERE InventoryID = ?", inv[0].InventoryID, inv[0].Quantity-1, time.Now(), inv[0].ProductID, inv[0].Deleted, inv[0].SKU, sku); err != nil {
+	if rows, err = tx.Query("UPDATE Inventory SET InventoryID = ?, Quantity = ?, DateLastUpdated = ?, Deleted = ?, ProductID = ? WHERE InventoryID = ?", inv[0].InventoryID, inv[0].Quantity-1, time.Now(), inv[0].Deleted, inv[0].ProductID, inv[0].InventoryID); err != nil {
 		fmt.Println("inventory.go - getInventory - tx.Query error selecting inventory id: " + sku)
 		fmt.Println(err)
 		json.NewEncoder(w).Encode(err)
