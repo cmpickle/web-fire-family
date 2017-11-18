@@ -213,10 +213,10 @@ func TestGetInventoryNegativeID(t *testing.T) {
 }
 
 func TestUpdateInventory(t *testing.T) {
-	data := []byte(`{"productid":4,"productname":"Firefighter Stuff","inventoryscanningid":1,"color":"Tan","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1}`)
+	data := []byte(`{"inventoryid":1,"quantity":10,"datelastupdated":"11/17/2017","productid":1,"deleted":1}`)
 
 	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
-	req, err := http.NewRequest("PUT", "/product/update/2", bytes.NewBuffer(data))
+	req, err := http.NewRequest("PUT", "/inventory/update/1/50", bytes.NewBuffer(data))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -231,12 +231,12 @@ func TestUpdateInventory(t *testing.T) {
 	defer db.Close()
 
 	// before we actually execute our api function, we need to expect required DB actions
-	rows := sqlmock.NewRows([]string{"productid", "productname", "notificationquantity", "color", "trimcolor", "size", "price", "dimensions", "sku", "deleted"}).
-		AddRow(2, "Swing", 10, "test", "test", "test", 1, "test", 1, 0)
+	rows := sqlmock.NewRows([]string{"inventoryid", "quantity", "datelastupdated", "productid", "deleted"}).
+		AddRow(1, 50, "11/17/2017", 1, 0)
 
 	mock.ExpectBegin()
-	mock.ExpectQuery("^SELECT (.+) FROM Product WHERE ProductID = \\?$").WillReturnRows(rows)
-	mock.ExpectExec("^UPDATE Product SET ProductName = \\?, NotificationQuantity = \\?, Color = \\?, TrimColor = \\?, Size = \\?, Price = \\?, Dimensions = \\?, SKU = \\? WHERE ProductID = \\?$").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectQuery("^SELECT (.+) FROM Inventory WHERE InventoryID = \\?$").WillReturnRows(rows)
+	mock.ExpectExec("^UPDATE Inventory SET InventoryID = \\?, Quantity = \\?, DateLastUpdated = \\?, ProductID = \\?, Deleted = \\? WHERE InventoryID = \\?$").WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
 	router := routes.InitRoutes(models.Env{db})
@@ -244,8 +244,8 @@ func TestUpdateInventory(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	// Check the status code is what we expect.
-	if status := w.Code; status != http.StatusAccepted {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusAccepted)
+	if status := w.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
 
 	// we make sure that all expectations were met
