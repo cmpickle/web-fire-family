@@ -43,11 +43,11 @@ func InitRoutes(env models.Env) http.Handler {
 	// This should bring back a specific Inventory.
 	router.HandleFunc("/inventorybysku/{sku}", getInventoryBySKU).Methods("GET")
 	//This allows the quantity value of a product to be set.
-	router.HandleFunc("/inventory/update/{sku}/{quantity}", updateInventory).Methods("PUT")
+	router.HandleFunc("/inventory/update/{sku}/{quantity}", updateInventoryBySKU).Methods("PUT")
 	//This allows for incrementation of a product's inventory.
-	router.HandleFunc("/inventory/increment/{sku}", incrementInventory).Methods("PUT")
+	router.HandleFunc("/inventory/increment/{sku}", incrementInventoryBySKU).Methods("PUT")
 	//This allows for decrementation of a product's inventory.
-	router.HandleFunc("/inventory/decrement/{sku}", decrementInventory).Methods("PUT")
+	router.HandleFunc("/inventory/decrement/{sku}", decrementInventoryBySKU).Methods("PUT")
 
 	return router
 }
