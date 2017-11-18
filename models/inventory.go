@@ -7,4 +7,5 @@ type Inventory struct {
 	DateLastUpdated string `json:"datelastupdated, omitempty"`
 	ProductID       int    `json:"productid,omitempty"`
 	Deleted         int    `json:"deleted,omitempty"`
+	SKU             int    `json:"sku,omitempty"`
 }

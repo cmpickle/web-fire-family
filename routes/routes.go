@@ -33,9 +33,9 @@ func InitRoutes(env models.Env) http.Handler {
 	//This creates a new product using a Json String.
 	router.HandleFunc("/product/create", createProduct).Methods("POST")
 	//This updates a product using a Json String.
-	router.HandleFunc("/product/update/{id}", updateProduct).Methods("PUT")
+	router.HandleFunc("/product/update/{sku}", updateProduct).Methods("PUT")
 	//This sets the product to inactive in the database.
-	router.HandleFunc("/product/delete/{id}", deleteProduct).Methods("DELETE")
+	router.HandleFunc("/product/delete/{sku}", deleteProduct).Methods("DELETE")
 	//This gets the inventory values.
 	router.HandleFunc("/inventories", getInventories).Methods("GET")
 	//This gets the inventory value.
@@ -43,11 +43,11 @@ func InitRoutes(env models.Env) http.Handler {
 	// This should bring back a specific Inventory.
 	router.HandleFunc("/inventorybysku/{sku}", getInventoryBySKU).Methods("GET")
 	//This allows the quantity value of a product to be set.
-	router.HandleFunc("/inventory/update/{id}/{quantity}", updateInventory).Methods("PUT")
+	router.HandleFunc("/inventory/update/{sku}/{quantity}", updateInventory).Methods("PUT")
 	//This allows for incrementation of a product's inventory.
-	router.HandleFunc("/inventory/increment/{id}", incrementInventory).Methods("PUT")
+	router.HandleFunc("/inventory/increment/{sku}", incrementInventory).Methods("PUT")
 	//This allows for decrementation of a product's inventory.
-	router.HandleFunc("/inventory/decrement/{id}", decrementInventory).Methods("PUT")
+	router.HandleFunc("/inventory/decrement/{sku}", decrementInventory).Methods("PUT")
 
 	return router
 }
