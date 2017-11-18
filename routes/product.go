@@ -30,7 +30,7 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var rows *sql.Rows
-	if rows, err = tx.Query("SELECT P.*, I.Quantity FROM Product P INNER JOIN Inventory I ON P.ProductID = I.ProductID"); err != nil {
+	if rows, err = tx.Query("SELECT P.*, I.Quantity FROM Product P LEFT JOIN Inventory I ON P.ProductID = I.ProductID"); err != nil {
 		return
 	}
 
@@ -84,7 +84,7 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var rows *sql.Rows
-	if rows, err = tx.Query("SELECT P.*, I.Quantity FROM Product P INNER JOIN Inventory I ON P.ProductID = I.ProductID  WHERE P.ProductID = ?", id); err != nil {
+	if rows, err = tx.Query("SELECT P.*, I.Quantity FROM Product P LEFT JOIN Inventory I ON P.ProductID = I.ProductID  WHERE P.ProductID = ?", id); err != nil {
 		fmt.Println("routes.go - getProduct - tx.Query error selecting product id: " + id)
 		fmt.Println(err)
 		json.NewEncoder(w).Encode(err)
@@ -156,7 +156,7 @@ func getProductBySKU(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var rows *sql.Rows
-	if rows, err = tx.Query("SELECT P.*, I.Quantity FROM Product P INNER JOIN Inventory I ON P.ProductID = I.ProductID  WHERE P.SKU = ?", sku); err != nil {
+	if rows, err = tx.Query("SELECT P.*, I.Quantity FROM Product P LEFT JOIN Inventory I ON P.ProductID = I.ProductID  WHERE P.SKU = ?", sku); err != nil {
 		fmt.Println("routes.go - getProduct - tx.Query error selecting product sku: " + sku)
 		fmt.Println(err)
 		json.NewEncoder(w).Encode(err)
