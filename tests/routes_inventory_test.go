@@ -289,3 +289,87 @@ func TestUpdateInventoryInvalidID(t *testing.T) {
 		t.Errorf("there were unfulfilled expections: %s", err)
 	}
 }
+
+func TestIncrementInventory(t *testing.T) {
+	data := []byte(`{"inventoryid":1,"quantity":11,"datelastupdated":"11/17/2017","productid":1,"deleted":1}`)
+
+	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
+	req, err := http.NewRequest("PUT", "/inventory/increment/1", bytes.NewBuffer(data))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	// before we actually execute our api function, we need to expect required DB actions
+	rows := sqlmock.NewRows([]string{"inventoryid", "quantity", "datelastupdated", "productid", "deleted"}).
+		AddRow(1, 11, "11/17/2017", 1, 0)
+
+	mock.ExpectBegin()
+	mock.ExpectQuery("^SELECT (.+) FROM Inventory WHERE InventoryID = \\?$").WillReturnRows(rows)
+	mock.ExpectExec("^UPDATE Inventory SET InventoryID = \\?, Quantity = \\?, DateLastUpdated = \\?, ProductID = \\?, Deleted = \\? WHERE InventoryID = \\?$").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	router := routes.InitRoutes(models.Env{db})
+
+	router.ServeHTTP(w, req)
+
+	// Check the status code is what we expect.
+	if status := w.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+	}
+
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expections: %s", err)
+	}
+}
+
+func TestDecrementInventory(t *testing.T) {
+	data := []byte(`{"inventoryid":1,"quantity":9,"datelastupdated":"11/17/2017","productid":1,"deleted":1}`)
+
+	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
+	req, err := http.NewRequest("PUT", "/inventory/increment/1", bytes.NewBuffer(data))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	// before we actually execute our api function, we need to expect required DB actions
+	rows := sqlmock.NewRows([]string{"inventoryid", "quantity", "datelastupdated", "productid", "deleted"}).
+		AddRow(1, 9, "11/17/2017", 1, 0)
+
+	mock.ExpectBegin()
+	mock.ExpectQuery("^SELECT (.+) FROM Inventory WHERE InventoryID = \\?$").WillReturnRows(rows)
+	mock.ExpectExec("^UPDATE Inventory SET InventoryID = \\?, Quantity = \\?, DateLastUpdated = \\?, ProductID = \\?, Deleted = \\? WHERE InventoryID = \\?$").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	router := routes.InitRoutes(models.Env{db})
+
+	router.ServeHTTP(w, req)
+
+	// Check the status code is what we expect.
+	if status := w.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+	}
+
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expections: %s", err)
+	}
+}
