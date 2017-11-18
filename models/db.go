@@ -3,10 +3,13 @@ package models
 import (
 	"database/sql"
 	"log"
+
 	"../app"
+	// "github.com/Xero67/web-fire-family/app"
+
+	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
-	"fmt"
 )
 
 type Env struct {
@@ -42,7 +45,7 @@ func InitDB(Dbdriver *app.Dbdriver) (*sql.DB, error) {
 	// Bootstrapping the setting
 
 	//"fireadmin:FireFamily@1@tcp(165.227.17.104:3306)/Fire_Family"
-	dbConnection = fmt.Sprintf("%v:%v@tcp(%v:)/%v", Dbdriver.Dbuser, Dbdriver.Dbpass, Dbdriver.Host,Dbdriver.Port,Dbdriver.Database)
+	dbConnection = fmt.Sprintf("%v:%v@tcp(%v:)/%v", Dbdriver.Dbuser, Dbdriver.Dbpass, Dbdriver.Host, Dbdriver.Port, Dbdriver.Database)
 	//Trying DB things here
 
 	var err error

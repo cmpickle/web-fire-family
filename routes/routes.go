@@ -9,6 +9,8 @@ import (
 
 	"../app"
 	"../models"
+	// "github.com/Xero67/web-fire-family/app"
+	// "github.com/Xero67/web-fire-family/models"
 )
 
 var db *sql.DB
@@ -26,6 +28,8 @@ func InitRoutes(env models.Env) http.Handler {
 	router.HandleFunc("/product", getProducts).Methods("GET")
 	// This should bring back a specific Product.
 	router.HandleFunc("/product/{id}", getProduct).Methods("GET")
+	// This should bring back a specific Product.
+	router.HandleFunc("/productbysku/{sku}", getProductBySKU).Methods("GET")
 	//This creates a new product using a Json String.
 	router.HandleFunc("/product/create", createProduct).Methods("POST")
 	//This updates a product using a Json String.
@@ -36,6 +40,8 @@ func InitRoutes(env models.Env) http.Handler {
 	router.HandleFunc("/inventories", getInventories).Methods("GET")
 	//This gets the inventory value.
 	router.HandleFunc("/inventory/{id}", getInventory).Methods("GET")
+	// This should bring back a specific Inventory.
+	router.HandleFunc("/inventorybysku/{sku}", getInventoryBySKU).Methods("GET")
 	//This allows the quantity value of a product to be set.
 	router.HandleFunc("/inventory/update/{id}/{quantity}", updateInventory).Methods("PUT")
 	//This allows for incrementation of a product's inventory.

@@ -3,13 +3,19 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strconv"
+
 	"./app"
 	"./models"
 	"./routes"
-	"strconv"
+	// "github.com/Xero67/web-fire-family/app"
+	// "github.com/Xero67/web-fire-family/models"
+	// "github.com/Xero67/web-fire-family/routes"
 )
+
 var Dbdriver app.Dbdriver
 var web app.Web
+
 func main() {
 	Dbdriver = Dbdriver.LoadSettings("./config.yml")
 	web = web.LoadSettings("./config.yml")
