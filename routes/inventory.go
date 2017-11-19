@@ -467,7 +467,17 @@ func incrementInventory(w http.ResponseWriter, r *http.Request) {
 	if rows, err = tx.Query("UPDATE Inventory SET InventoryID = ?, Quantity = ?, DateLastUpdated = ?, Deleted = ?, ProductID = ? WHERE InventoryID = ?", inv[0].InventoryID, inv[0].Quantity+1, time.Now(), inv[0].Deleted, inv[0].ProductID, id); err != nil {
 		fmt.Println("inventory.go - getInventory - tx.Query error selecting inventory id: " + id)
 		fmt.Println(err)
-		json.NewEncoder(w).Encode(err)
+		fmt.Println("1")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Invalid product, please include a name, notification quantity, color, trim color, size, price, dimensions, and SKU"))
+		return
+	}
+	rowCnt, err := res.RowsAffected()
+	if err != nil {
+		fmt.Println("4")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Insert failed"))
 		return
 	}
 	defer rows.Close()
@@ -556,6 +566,8 @@ func incrementInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
+	fmt.Printf("update affected = %d\n", rowCnt)
+
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -634,11 +646,25 @@ func decrementInventory(w http.ResponseWriter, r *http.Request) {
 
 	if rows, err = tx.Query("UPDATE Inventory SET InventoryID = ?, Quantity = ?, DateLastUpdated = ?, Deleted = ?, ProductID = ? WHERE InventoryID = ?", inv[0].InventoryID, inv[0].Quantity-1, time.Now(), inv[0].Deleted, inv[0].ProductID, id); err != nil {
 		fmt.Println("inventory.go - getInventory - tx.Query error selecting inventory id: " + id)
+	res, err := tx.Exec("UPDATE Inventory SET InventoryID = ?, Quantity = ?, DateLastUpdated = ?, ProductID = ?, Deleted = ? WHERE InventoryID = ?", inv[0].InventoryID, inv[0].Quantity-1, time.Now(), inv[0].ProductID, inv[0].Deleted, id)
+	if err != nil {
 		fmt.Println(err)
-		json.NewEncoder(w).Encode(err)
+		fmt.Println("1")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Invalid product, please include a name, notification quantity, color, trim color, size, price, dimensions, and SKU"))
+		return
+	}
+	rowCnt, err := res.RowsAffected()
+	if err != nil {
+		fmt.Println("4")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Insert failed"))
 		return
 	}
 	defer rows.Close()
+
+	fmt.Printf("update affected = %d\n", rowCnt)
 
 	w.WriteHeader(http.StatusOK)
 }
