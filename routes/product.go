@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"strconv"
 
-	//"github.com/Xero67/web-fire-family/models"
-	"../models"
+	"github.com/Xero67/web-fire-family/models"
+	// "../models"
 	"github.com/gorilla/mux"
 )
 
@@ -382,7 +382,7 @@ func deleteProductBySKU(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 
 		p := new(models.Product)
-		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU, &p.Deleted)
+		err := rows.Scan(&p.ProductID, &p.ProductName, &p.NotificationQuantity, &p.Color, &p.TrimColor, &p.Size, &p.Price, &p.Dimensions, &p.SKU, &p.Deleted, &p.Quantity)
 		if err != nil {
 			//More error handling
 			fmt.Println("2")
@@ -406,7 +406,7 @@ func deleteProductBySKU(w http.ResponseWriter, r *http.Request) {
 		return
 	} else { //All deletion logic goes here because it confirms the find
 		prods[0].Deleted = 1
-		_, err := tx.Exec("UPDATE Product SET Deleted = 1 WHERE ProductID = ?", prods[0].ProductID)
+		_, err := tx.Exec("UPDATE Product SET Deleted = 1 WHERE SKU = ?", prods[0].ProductID)
 		if err != nil {
 			fmt.Println(err)
 		}

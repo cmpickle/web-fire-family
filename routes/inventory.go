@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	//"github.com/Xero67/web-fire-family/models"
-	"../models"
+	"github.com/Xero67/web-fire-family/models"
+	// "../models"
 	"github.com/gorilla/mux"
 )
 
@@ -165,7 +165,7 @@ func getInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 	inv := make([]*models.Inventory, 0)
 	for rows.Next() {
 		i := new(models.Inventory)
-		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.Deleted, &i.ProductID, &i.SKU)
+		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.ProductID, &i.Deleted, &i.SKU)
 		if err != nil {
 			//More error handling
 			fmt.Println("2")
@@ -328,7 +328,7 @@ func updateInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var rows *sql.Rows
-	if rows, err = tx.Query("SELECT I.*, P.SKU FROM Inventory I INNER JOIN Product P on P.ProductID = I.ProductID WHERE P.SKU = ?", sku); err != nil {
+	if rows, err = tx.Query("SELECT I.*, P.SKU FROM Inventory I INNER JOIN Product P ON P.ProductID = I.ProductID WHERE P.SKU = ?", sku); err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		fmt.Println("inventory.go - getInventory - tx.Query error selecting inventory sku: " + sku)
 		fmt.Println(err)
@@ -659,28 +659,28 @@ func decrementInventory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res, err := tx.Exec("UPDATE Inventory SET InventoryID = ?, Quantity = ?, DateLastUpdated = ?, Deleted = ?, ProductID = ? WHERE InventoryID = ?", inv[0].InventoryID, inv[0].Quantity-1, time.Now(), inv[0].Deleted, inv[0].ProductID, id)
-		fmt.Println("inventory.go - getInventory - tx.Query error selecting inventory id: " + id)
-		//res, err := tx.Exec("UPDATE Inventory SET InventoryID = ?, Quantity = ?, DateLastUpdated = ?, ProductID = ?, Deleted = ? WHERE InventoryID = ?", inv[0].InventoryID, inv[0].Quantity-1, time.Now(), inv[0].ProductID, inv[0].Deleted, id)
-		if err != nil {
-			fmt.Println(err)
-			fmt.Println("1")
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("400"))
-			return
-		}
-		rowCnt, err := res.RowsAffected()
-		if err != nil {
-			fmt.Println("4")
-			fmt.Println(err)
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("400 - Insert failed"))
-			return
-		}
-		defer rows.Close()
+	fmt.Println("inventory.go - getInventory - tx.Query error selecting inventory id: " + id)
+	//res, err := tx.Exec("UPDATE Inventory SET InventoryID = ?, Quantity = ?, DateLastUpdated = ?, ProductID = ?, Deleted = ? WHERE InventoryID = ?", inv[0].InventoryID, inv[0].Quantity-1, time.Now(), inv[0].ProductID, inv[0].Deleted, id)
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println("1")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400"))
+		return
+	}
+	rowCnt, err := res.RowsAffected()
+	if err != nil {
+		fmt.Println("4")
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Insert failed"))
+		return
+	}
+	defer rows.Close()
 
-		fmt.Printf("update affected = %d\n", rowCnt)
+	fmt.Printf("update affected = %d\n", rowCnt)
 
-		w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 
 }
 
@@ -757,7 +757,7 @@ func decrementInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := tx.Exec("UPDATE Inventory SET InventoryID = ?, Quantity = ?, DateLastUpdated = ?, Deleted = ?, ProductID = ? WHERE InventoryID = ?", inv[0].InventoryID, inv[0].Quantity+1, time.Now(), inv[0].Deleted, inv[0].ProductID, inv[0].InventoryID)
+	res, err := tx.Exec("UPDATE Inventory SET InventoryID = ?, Quantity = ?, DateLastUpdated = ?, Deleted = ?, ProductID = ? WHERE InventoryID = ?", inv[0].InventoryID, inv[0].Quantity-1, time.Now(), inv[0].Deleted, inv[0].ProductID, inv[0].InventoryID)
 	if err != nil {
 		fmt.Println("inventory.go - getInventory - tx.Query error selecting inventory by sku: " + sku)
 		fmt.Println(err)
