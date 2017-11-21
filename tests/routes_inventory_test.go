@@ -9,10 +9,10 @@ import (
 
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 
-	"../models"
-	"../routes"
-	// "github.com/Xero67/web-fire-family/models"
-	// "github.com/Xero67/web-fire-family/routes"
+	// "../models"
+	// "../routes"
+	"github.com/Xero67/web-fire-family/models"
+	"github.com/Xero67/web-fire-family/routes"
 	//"os"
 )
 
@@ -32,13 +32,13 @@ func TestGetInventories(t *testing.T) {
 	defer db.Close()
 
 	// before we actually execute our api function, we need to expect required DB actions
-	rows := sqlmock.NewRows([]string{"inventoryid", "quantity", "datelastupdated", "productid", "deleted"}).
-		AddRow(1, 10, "11/17/2017", 1, 0).
-		AddRow(2, 5, "11/16/2017", 2, 0).
-		AddRow(3, 300, "11/15/2017", 3, 0)
+	rows := sqlmock.NewRows([]string{"inventoryid", "quantity", "datelastupdated", "productid", "deleted", "sku"}).
+		AddRow(1, 10, "11/17/2017", 0, 1, 1).
+		AddRow(2, 5, "11/16/2017", 0, 2, 2).
+		AddRow(3, 300, "11/15/2017", 0, 3, 3)
 
 	mock.ExpectBegin()
-	mock.ExpectQuery("^SELECT (.+) FROM Inventory$").WillReturnRows(rows)
+	mock.ExpectQuery("^SELECT I.(.+), P.SKU FROM Inventory I INNER JOIN Product P ON P.ProductID = I.ProductID$").WillReturnRows(rows)
 	mock.ExpectCommit()
 
 	router := routes.InitRoutes(models.Env{db})
@@ -51,7 +51,7 @@ func TestGetInventories(t *testing.T) {
 	}
 
 	// Check the response body is what we expect.
-	expected := `[{"inventoryid":1,"quantity":10,"datelastupdated":"11/17/2017","productid":1},{"inventoryid":2,"quantity":5,"datelastupdated":"11/16/2017","productid":2},{"inventoryid":3,"quantity":300,"datelastupdated":"11/15/2017","productid":3}]`
+	expected := `[{"inventoryid":1,"quantity":10,"datelastupdated":"11/17/2017","productid":1,"sku":1},{"inventoryid":2,"quantity":5,"datelastupdated":"11/16/2017","productid":2,"sku":2},{"inventoryid":3,"quantity":300,"datelastupdated":"11/15/2017","productid":3,"sku":3}]`
 	equal, err := AreEqualJSON(w.Body.String(), expected)
 	if !equal {
 		t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), expected)
@@ -65,7 +65,7 @@ func TestGetInventories(t *testing.T) {
 
 func TestGetInventory(t *testing.T) {
 	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
-	req, err := http.NewRequest("GET", "/inventory/1", nil)
+	req, err := http.NewRequest("GET", "/inventory/4", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -79,10 +79,10 @@ func TestGetInventory(t *testing.T) {
 	defer db.Close()
 
 	// before we actually execute our api function, we need to expect required DB actions
-	rows := sqlmock.NewRows([]string{"inventoryid", "quantity", "datelastupdated", "productid", "deleted"}).
-		AddRow(1, 10, "11/17/2017", 1, 0)
+	rows := sqlmock.NewRows([]string{"inventoryid", "quantity", "datelastupdated", "productid", "deleted", "SKU"}).
+		AddRow(4, 10, "11/17/2017", 1, 0, 4)
 	mock.ExpectBegin()
-	mock.ExpectQuery("^SELECT (.+) FROM Inventory WHERE InventoryID = \\?$").WillReturnRows(rows)
+	mock.ExpectQuery("^SELECT I.(.+), P.SKU FROM Inventory I INNER JOIN Product P ON I.ProductID = P.ProductID WHERE P.SKU = \\?$").WillReturnRows(rows)
 	mock.ExpectCommit()
 
 	router := routes.InitRoutes(models.Env{db})
@@ -95,7 +95,7 @@ func TestGetInventory(t *testing.T) {
 	}
 
 	// Check the response body is what we expect.
-	expected := `[{"inventoryid":1,"quantity":10,"datelastupdated":"11/17/2017","productid":1}]`
+	expected := `[{"inventoryid":4,"quantity":10,"datelastupdated":"11/17/2017","productid":1,"sku":4}]`
 	equal, err := AreEqualJSON(w.Body.String(), expected)
 	if !equal {
 		t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), expected)
@@ -123,7 +123,7 @@ func TestGetInventoryInvalidID(t *testing.T) {
 	defer db.Close()
 
 	mock.ExpectBegin()
-	mock.ExpectQuery("^SELECT (.+) FROM Inventory WHERE InventoryID = \\?$").WillReturnError(fmt.Errorf("404 - Inventory not found"))
+	mock.ExpectQuery("^SELECT I.(.+), P.SKU FROM Inventory I INNER JOIN Product P ON I.ProductID = P.ProductID WHERE P.SKU = \\?$").WillReturnError(fmt.Errorf("404 - Inventory not found"))
 
 	router := routes.InitRoutes(models.Env{db})
 
@@ -135,49 +135,49 @@ func TestGetInventoryInvalidID(t *testing.T) {
 	}
 }
 
-func TestGetInventoryBySKU(t *testing.T) {
-	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
-	req, err := http.NewRequest("GET", "/inventorybysku/1", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+// func TestGetInventoryBySKU(t *testing.T) {
+// 	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
+// 	req, err := http.NewRequest("GET", "/inventorybysku/1", nil)
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
 
-	w := httptest.NewRecorder()
+// 	w := httptest.NewRecorder()
 
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	defer db.Close()
+// 	db, mock, err := sqlmock.New()
+// 	if err != nil {
+// 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+// 	}
+// 	defer db.Close()
 
-	// before we actually execute our api function, we need to expect required DB actions
-	rows := sqlmock.NewRows([]string{"inventoryid", "quantity", "datelastupdated", "productid", "deleted"}).
-		AddRow(1, 10, "11/17/2017", 1, 0)
-	mock.ExpectBegin()
-	mock.ExpectQuery("^SELECT (.+) FROM Inventory INNER JOIN Product ON Inventory.ProductID = Product.ProductID WHERE SKU = \\?$").WillReturnRows(rows)
-	mock.ExpectCommit()
+// 	// before we actually execute our api function, we need to expect required DB actions
+// 	rows := sqlmock.NewRows([]string{"inventoryid", "quantity", "datelastupdated", "productid", "deleted"}).
+// 		AddRow(1, 10, "11/17/2017", 1, 0)
+// 	mock.ExpectBegin()
+// 	mock.ExpectQuery("^SELECT (.+) FROM Inventory INNER JOIN Product ON Inventory.ProductID = Product.ProductID WHERE SKU = \\?$").WillReturnRows(rows)
+// 	mock.ExpectCommit()
 
-	router := routes.InitRoutes(models.Env{db})
+// 	router := routes.InitRoutes(models.Env{db})
 
-	router.ServeHTTP(w, req)
+// 	router.ServeHTTP(w, req)
 
-	// Check the status code is what we expect.
-	if status := w.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-	}
+// 	// Check the status code is what we expect.
+// 	if status := w.Code; status != http.StatusOK {
+// 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+// 	}
 
-	// Check the response body is what we expect.
-	expected := `[{"inventoryid":1,"quantity":10,"datelastupdated":"11/17/2017","productid":1}]`
-	equal, err := AreEqualJSON(w.Body.String(), expected)
-	if !equal {
-		t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), expected)
-	}
+// 	// Check the response body is what we expect.
+// 	expected := `[{"inventoryid":1,"quantity":10,"datelastupdated":"11/17/2017","productid":1}]`
+// 	equal, err := AreEqualJSON(w.Body.String(), expected)
+// 	if !equal {
+// 		t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), expected)
+// 	}
 
-	// we make sure that all expectations were met
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expections: %s", err)
-	}
-}
+// 	// we make sure that all expectations were met
+// 	if err := mock.ExpectationsWereMet(); err != nil {
+// 		t.Errorf("there were unfulfilled expections: %s", err)
+// 	}
+// }
 
 func TestGetInventoryNegativeID(t *testing.T) {
 	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
@@ -204,7 +204,7 @@ func TestGetInventoryNegativeID(t *testing.T) {
 	}
 
 	// Check the response body is what we expect.
-	expected := `400 - Invalid inventory ID.`
+	expected := `400 - Invalid product SKU.`
 	if w.Body.String() != expected {
 		t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), expected)
 	}
@@ -233,8 +233,8 @@ func TestUpdateInventory(t *testing.T) {
 		AddRow(1, 50, "11/17/2017", 1, 0)
 
 	mock.ExpectBegin()
-	mock.ExpectQuery("^SELECT (.+) FROM Inventory WHERE InventoryID = \\?$").WillReturnRows(rows)
-	mock.ExpectExec("^UPDATE Inventory SET InventoryID = \\?, Quantity = \\?, DateLastUpdated = \\?, ProductID = \\?, Deleted = \\? WHERE InventoryID = \\?$").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectQuery("^SELECT I.(.+), P.SKU FROM Inventory I INNER JOIN Product P ON P.ProductID = I.ProductID WHERE P.SKU = \\?$").WillReturnRows(rows)
+	mock.ExpectExec("^UPDATE Inventory SET InventoryID = \\?, Quantity = \\?, DateLastUpdated = \\?, Deleted = \\?, ProductID = \\? WHERE InventoryID = \\?$").WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
 	router := routes.InitRoutes(models.Env{db})
@@ -271,7 +271,7 @@ func TestUpdateInventoryInvalidID(t *testing.T) {
 	defer db.Close()
 
 	mock.ExpectBegin()
-	mock.ExpectQuery("^SELECT (.+) FROM Inventory WHERE InventoryID = \\?$").WillReturnError(fmt.Errorf("404 - Inventory not found"))
+	mock.ExpectQuery("^SELECT I.(.+), P.SKU FROM Inventory I INNER JOIN Product P ON P.ProductID = I.ProductID WHERE P.SKU = \\?$").WillReturnError(fmt.Errorf("404 - Inventory not found"))
 
 	router := routes.InitRoutes(models.Env{db})
 
@@ -311,8 +311,8 @@ func TestIncrementInventory(t *testing.T) {
 		AddRow(1, 11, "11/17/2017", 1, 0)
 
 	mock.ExpectBegin()
-	mock.ExpectQuery("^SELECT (.+) FROM Inventory WHERE InventoryID = \\?$").WillReturnRows(rows)
-	mock.ExpectExec("^UPDATE Inventory SET InventoryID = \\?, Quantity = \\?, DateLastUpdated = \\?, ProductID = \\?, Deleted = \\? WHERE InventoryID = \\?$").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectQuery("^SELECT I.(.+), P.SKU FROM Inventory I INNER JOIN Product P on P.ProductID = I.ProductID WHERE P.SKU = \\?$").WillReturnRows(rows)
+	mock.ExpectExec("^UPDATE Inventory SET InventoryID = \\?, Quantity = \\?, DateLastUpdated = \\?, Deleted = \\?, ProductID = \\? WHERE InventoryID = \\?$").WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
 	router := routes.InitRoutes(models.Env{db})
@@ -334,7 +334,7 @@ func TestDecrementInventory(t *testing.T) {
 	data := []byte(`{"inventoryid":1,"quantity":9,"datelastupdated":"11/17/2017","productid":1,"deleted":1}`)
 
 	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
-	req, err := http.NewRequest("PUT", "/inventory/increment/1", bytes.NewBuffer(data))
+	req, err := http.NewRequest("PUT", "/inventory/decrement/1", bytes.NewBuffer(data))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -353,8 +353,8 @@ func TestDecrementInventory(t *testing.T) {
 		AddRow(1, 9, "11/17/2017", 1, 0)
 
 	mock.ExpectBegin()
-	mock.ExpectQuery("^SELECT (.+) FROM Inventory WHERE InventoryID = \\?$").WillReturnRows(rows)
-	mock.ExpectExec("^UPDATE Inventory SET InventoryID = \\?, Quantity = \\?, DateLastUpdated = \\?, ProductID = \\?, Deleted = \\? WHERE InventoryID = \\?$").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectQuery("^SELECT I.(.+), P.SKU FROM Inventory I INNER JOIN Product P on P.ProductID = I.ProductID WHERE P.SKU = \\?$").WillReturnRows(rows)
+	mock.ExpectExec("^UPDATE Inventory SET InventoryID = \\?, Quantity = \\?, DateLastUpdated = \\?, Deleted = \\?, ProductID = \\? WHERE InventoryID = \\?$").WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
 	router := routes.InitRoutes(models.Env{db})
