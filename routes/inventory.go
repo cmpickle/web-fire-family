@@ -14,6 +14,7 @@ import (
 )
 
 func getInventories(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	tx, err := db.Begin()
 	if err != nil {
 		return
@@ -55,6 +56,7 @@ func getInventories(w http.ResponseWriter, r *http.Request) {
 }
 
 func getInventory(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	params := mux.Vars(r)
 	id := params["id"]
 	found := -1
@@ -198,6 +200,7 @@ func getInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 
 // Updates the inventory value for the inventory item
 func updateInventory(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	params := mux.Vars(r)
 	id := params["id"]
 	found := -1
@@ -295,6 +298,7 @@ func updateInventory(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateInventoryBySKU(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	params := mux.Vars(r)
 	sku := params["sku"]
 	found := -1
@@ -392,6 +396,7 @@ func updateInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 }
 
 func incrementInventory(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	params := mux.Vars(r)
 	id := params["id"]
 	found := -1
@@ -489,6 +494,7 @@ func incrementInventory(w http.ResponseWriter, r *http.Request) {
 }
 
 func incrementInventoryBySKU(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	params := mux.Vars(r)
 	sku := params["sku"]
 	found := -1
@@ -586,6 +592,7 @@ func incrementInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 }
 
 func decrementInventory(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	params := mux.Vars(r)
 	id := params["id"]
 	found := -1
@@ -685,6 +692,7 @@ func decrementInventory(w http.ResponseWriter, r *http.Request) {
 }
 
 func decrementInventoryBySKU(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	params := mux.Vars(r)
 	sku := params["sku"]
 	found := -1
