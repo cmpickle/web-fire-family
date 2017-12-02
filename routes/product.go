@@ -258,9 +258,9 @@ func createProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Printf("ID = %d, affected = %d\n", lastId, rowCnt)
-	lstId := strconv.Itoa(int(lastId))
+	//lstId := strconv.Itoa(int(lastId))
 	//Not sure what we want to return when sucess?
-	w.Write([]byte("{\"ProductId\": " + lstId + "}"))
+	//w.Write([]byte("{\"ProductId\": " + lstId + "}"))
 }
 
 // Deletes the specified product from the database
