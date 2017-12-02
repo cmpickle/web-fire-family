@@ -279,7 +279,7 @@ func TestDeleteProduct(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.ExpectQuery("^SELECT (.+) FROM Product WHERE SKU = \\?$").WillReturnRows(rows)
-	mock.ExpectExec("^UPDATE Product SET Deleted = 1 WHERE SKU = \\?").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("^UPDATE Product SET Deleted = 1 WHERE ProductID = \\?").WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
 	router := routes.InitRoutes(models.Env{db})
