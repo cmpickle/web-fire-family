@@ -274,12 +274,12 @@ func TestDeleteProduct(t *testing.T) {
 	defer db.Close()
 
 	// before we actually execute our api function, we need to expect required DB actions
-	rows := sqlmock.NewRows([]string{"productid", "productname", "notificationquantity", "color", "trimcolor", "size", "price", "dimensions", "sku", "deleted", "quantity"}).
-		AddRow(2, "Swing", 10, "test", "test", "test", 1, "test", 1, 0, 10)
+	rows := sqlmock.NewRows([]string{"productid", "productname", "notificationquantity", "color", "trimcolor", "size", "price", "dimensions", "sku", "deleted"}).
+		AddRow(2, "Swing", 10, "test", "test", "test", 1, "test", 1, 0)
 
 	mock.ExpectBegin()
 	mock.ExpectQuery("^SELECT (.+) FROM Product WHERE SKU = \\?$").WillReturnRows(rows)
-	mock.ExpectExec("^UPDATE Product SET Deleted = 1 WHERE SKU = \\?").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("^UPDATE Product SET Deleted = 1 WHERE ProductID = \\?").WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
 	router := routes.InitRoutes(models.Env{db})
