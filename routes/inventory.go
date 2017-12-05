@@ -167,7 +167,7 @@ func getInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 	inv := make([]*models.Inventory, 0)
 	for rows.Next() {
 		i := new(models.Inventory)
-		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.ProductID, &i.Deleted, &i.SKU)
+		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.Deleted, &i.ProductID, &i.SKU)
 		if err != nil {
 			//More error handling
 			fmt.Println("2")
