@@ -12,5 +12,5 @@ type Product struct {
 	Dimensions           string  `json:"dimensions,omitempty"`
 	SKU                  int     `json:"sku,omitempty"`
 	Deleted              int     `json:"deleted,omitempty"`
-	Quantity        	 int     `json:"quantity,omitempty"`
+	Quantity        	 int     `json:"quantity"`
 }
