@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	//"github.com/Xero67/web-fire-family/models"
+	// "github.com/Xero67/web-fire-family/models"
 	"../models"
 	"github.com/gorilla/mux"
 )
@@ -104,7 +104,7 @@ func getInventory(w http.ResponseWriter, r *http.Request) {
 		if i.Deleted == 1 {
 			inv = append(inv, i)
 			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("404 - Product not found"))
+			w.Write([]byte("404 - Inventory not found"))
 			return
 		}
 		found = inventoryID
