@@ -79,8 +79,8 @@ func TestGetInventory(t *testing.T) {
 	defer db.Close()
 
 	// before we actually execute our api function, we need to expect required DB actions
-	rows := sqlmock.NewRows([]string{"inventoryid", "quantity", "datelastupdated", "productid", "deleted", "SKU"}).
-		AddRow(4, 10, "11/17/2017", 1, 0, 4)
+	rows := sqlmock.NewRows([]string{"inventoryid", "quantity", "datelastupdated", "deleted", "productid", "SKU"}).
+		AddRow(4, 10, "11/17/2017", 0, 1, 4)
 	mock.ExpectBegin()
 	mock.ExpectQuery("^SELECT I.(.+), P.SKU FROM Inventory I INNER JOIN Product P ON I.ProductID = P.ProductID WHERE P.SKU = \\?$").WillReturnRows(rows)
 	mock.ExpectCommit()
