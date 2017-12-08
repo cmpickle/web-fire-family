@@ -11,13 +11,9 @@ import (
 
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 
-	"../app"
-	"../models"
-	"../routes"
-	// "github.com/Xero67/web-fire-family/app"
-	// "github.com/Xero67/web-fire-family/models"
-	// "github.com/Xero67/web-fire-family/routes"
-	//"os"
+	"github.com/Xero67/web-fire-family/app"
+	"github.com/Xero67/web-fire-family/models"
+	"github.com/Xero67/web-fire-family/routes"
 )
 
 func TestGetProducts(t *testing.T) {

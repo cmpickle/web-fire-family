@@ -4,8 +4,7 @@ import (
 	"database/sql"
 	"log"
 
-	"../app"
-	// "github.com/Xero67/web-fire-family/app"
+	"github.com/Xero67/web-fire-family/app"
 
 	"fmt"
 

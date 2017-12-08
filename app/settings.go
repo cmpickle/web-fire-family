@@ -1,12 +1,10 @@
 package app
 
 import (
-	"gopkg.in/yaml.v2"
-	//"fmt"
-	"log"
-	//"io"
 	"io/ioutil"
-	//"os"
+	"log"
+
+	"gopkg.in/yaml.v2"
 )
 
 type Web struct {

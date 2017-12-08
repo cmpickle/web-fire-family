@@ -9,11 +9,8 @@ import (
 
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 
-	"../models"
-	"../routes"
-	//"github.com/Xero67/web-fire-family/models"
-	//"github.com/Xero67/web-fire-family/routes"
-	//"os"
+	"github.com/Xero67/web-fire-family/models"
+	"github.com/Xero67/web-fire-family/routes"
 )
 
 func TestGetInventories(t *testing.T) {

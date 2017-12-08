@@ -5,12 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"./app"
-	"./models"
-	"./routes"
-	// "github.com/Xero67/web-fire-family/app"
-	// "github.com/Xero67/web-fire-family/models"
-	// "github.com/Xero67/web-fire-family/routes"
+	"github.com/Xero67/web-fire-family/app"
+	"github.com/Xero67/web-fire-family/models"
+	"github.com/Xero67/web-fire-family/routes"
 )
 
 var Dbdriver app.Dbdriver
