@@ -1,0 +1,7 @@
+webport: 8000
+driver: mysql
+host: localhost
+user: test
+pass: letmein
+database: testDB
+dbport: 3306
