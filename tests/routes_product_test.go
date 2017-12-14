@@ -11,9 +11,9 @@ import (
 
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 
-	"github.com/Xero67/web-fire-family/app"
-	"github.com/Xero67/web-fire-family/models"
-	"github.com/Xero67/web-fire-family/routes"
+	"github.com/cmpickle/web-fire-family/app"
+	"github.com/cmpickle/web-fire-family/models"
+	"github.com/cmpickle/web-fire-family/routes"
 )
 
 func TestGetProducts(t *testing.T) {
@@ -256,7 +256,7 @@ func TestCreateProduct(t *testing.T) {
 
 func TestDeleteProduct(t *testing.T) {
 	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
-	req, err := http.NewRequest("DELETE", "/product/delete/2", nil)
+	req, err := http.NewRequest("POST", "/product/delete/2", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -302,7 +302,7 @@ func TestDeleteProduct(t *testing.T) {
 
 func TestDeleteProductNonExistant(t *testing.T) {
 	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
-	req, err := http.NewRequest("DELETE", "/product/delete/8", nil)
+	req, err := http.NewRequest("POST", "/product/delete/8", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -343,7 +343,7 @@ func TestUpdateProduct(t *testing.T) {
 	data := []byte(`{"productid":4,"productname":"Firefighter Stuff","inventoryscanningid":1,"color":"Tan","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1}`)
 
 	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
-	req, err := http.NewRequest("PUT", "/product/update/2", bytes.NewBuffer(data))
+	req, err := http.NewRequest("POST", "/product/update/2", bytes.NewBuffer(data))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -385,7 +385,7 @@ func TestUpdateProductInvalidID(t *testing.T) {
 	data := []byte(`{"productid":4,"productname":"Firefighter Stuff","inventoryscanningid":1,"color":"Tan","price":30,"dimensions":"3 1/2\" tall and 4 1/2\" long","sku":1}`)
 
 	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
-	req, err := http.NewRequest("PUT", "/product/update/8", bytes.NewBuffer(data))
+	req, err := http.NewRequest("POST", "/product/update/8", bytes.NewBuffer(data))
 	if err != nil {
 		t.Fatal(err)
 	}

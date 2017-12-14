@@ -9,8 +9,8 @@ import (
 
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 
-	"github.com/Xero67/web-fire-family/models"
-	"github.com/Xero67/web-fire-family/routes"
+	"github.com/cmpickle/web-fire-family/models"
+	"github.com/cmpickle/web-fire-family/routes"
 )
 
 func TestGetInventories(t *testing.T) {
@@ -211,7 +211,7 @@ func TestUpdateInventory(t *testing.T) {
 	data := []byte(`{"inventoryid":1,"quantity":10,"datelastupdated":"11/17/2017","productid":1,"deleted":1}`)
 
 	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
-	req, err := http.NewRequest("PUT", "/inventory/update/1/50", bytes.NewBuffer(data))
+	req, err := http.NewRequest("POST", "/inventory/update/1/50", bytes.NewBuffer(data))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -253,7 +253,7 @@ func TestUpdateInventoryInvalidID(t *testing.T) {
 	data := []byte(`{"inventoryid":1,"quantity":10,"datelastupdated":"11/17/2017","productid":1,"deleted":1}`)
 
 	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
-	req, err := http.NewRequest("PUT", "/inventory/update/800/1", bytes.NewBuffer(data))
+	req, err := http.NewRequest("POST", "/inventory/update/800/1", bytes.NewBuffer(data))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -289,7 +289,7 @@ func TestIncrementInventory(t *testing.T) {
 	data := []byte(`{"inventoryid":1,"quantity":11,"datelastupdated":"11/17/2017","productid":1,"deleted":1}`)
 
 	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
-	req, err := http.NewRequest("PUT", "/inventory/increment/1", bytes.NewBuffer(data))
+	req, err := http.NewRequest("POST", "/inventory/increment/1", bytes.NewBuffer(data))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -331,7 +331,7 @@ func TestDecrementInventory(t *testing.T) {
 	data := []byte(`{"inventoryid":1,"quantity":9,"datelastupdated":"11/17/2017","productid":1,"deleted":1}`)
 
 	// Create a request to pass to our handler. We don't have any query parameters for now so we'll pass 'nil' as the third parameter.
-	req, err := http.NewRequest("PUT", "/inventory/decrement/1", bytes.NewBuffer(data))
+	req, err := http.NewRequest("POST", "/inventory/decrement/1", bytes.NewBuffer(data))
 	if err != nil {
 		t.Fatal(err)
 	}

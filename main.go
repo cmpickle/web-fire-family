@@ -5,17 +5,17 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Xero67/web-fire-family/app"
-	"github.com/Xero67/web-fire-family/models"
-	"github.com/Xero67/web-fire-family/routes"
+	"github.com/cmpickle/web-fire-family/app"
+	"github.com/cmpickle/web-fire-family/models"
+	"github.com/cmpickle/web-fire-family/routes"
 )
 
 var Dbdriver app.Dbdriver
 var web app.Web
 
 func main() {
-	Dbdriver = Dbdriver.LoadSettings("./config.yml")
-	web = web.LoadSettings("./config.yml")
+	Dbdriver = Dbdriver.LoadSettings("github.com/cmpickle/web-fire-family/config.yml")
+	web = web.LoadSettings("github.com/cmpickle/web-fire-family/config.yml")
 	var addr string
 	addr = ":" + strconv.Itoa(web.Port)
 	db, err := models.InitDB(&Dbdriver)

@@ -24,7 +24,7 @@ func (d Dbdriver) LoadSettingsDefault() Dbdriver {
 	// slurping the config.yml file into memory.  and allowing the yaml framework handle the data read
 	// This should get all setings from the file.
 	// dat, err := ioutil.ReadFile("../config.yml")
-	dat, err := ioutil.ReadFile("github.com/Xero67/web-fire-family/config.yml")
+	dat, err := ioutil.ReadFile("github.com/cmpickle/web-fire-family/config.yml")
 	yaml.Unmarshal(dat, &d)
 	if err != nil {
 		log.Fatal("cannot unmarshal data %v", err)
@@ -34,7 +34,7 @@ func (d Dbdriver) LoadSettingsDefault() Dbdriver {
 
 func (web Web) loadSettingsDefault() Web {
 	// dat, err := ioutil.ReadFile("../config.yml")
-	dat, err := ioutil.ReadFile("github.com/Xero67/web-fire-family/config.yml")
+	dat, err := ioutil.ReadFile("github.com/cmpickle/web-fire-family/config.yml")
 	yaml.Unmarshal(dat, &web)
 	if err != nil {
 		log.Fatal("cannot unmarshal data %v", err)

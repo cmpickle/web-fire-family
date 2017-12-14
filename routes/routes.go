@@ -2,13 +2,12 @@ package routes
 
 import (
 	"database/sql"
-	//"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
-	"github.com/Xero67/web-fire-family/app"
-	"github.com/Xero67/web-fire-family/models"
+	"github.com/cmpickle/web-fire-family/app"
+	"github.com/cmpickle/web-fire-family/models"
 )
 
 var db *sql.DB

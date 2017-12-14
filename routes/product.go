@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Xero67/web-fire-family/models"
+	"github.com/cmpickle/web-fire-family/models"
 	"github.com/gorilla/mux"
 )
 
