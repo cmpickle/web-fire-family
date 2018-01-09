@@ -20,13 +20,13 @@ var dbConnection string
 func InitDBdefault() (*sql.DB, error) {
 	// Bootstrapping the setting
 
-	//"fireadmin:FireFamily@1@tcp(165.227.17.104:3306)/Fire_Family"
+	//"fireadmin:FireFamily@1@tcp(50.63.80.1:3306)/Fire_Family"
 	dbConnection = "%v:%v@tcp(%v:)/%v"
 	//Trying DB things here
 
 	var err error
 	//db, err = sql.Open("mysql", "fireadmin:FireFamily@1@tcp(165.227.17.104:3306)/Fire_Family")
-	NewDB("fireadmin:FireFamily@1@tcp(165.227.17.104:3306)/Fire_Family")
+	NewDB("fisinventory:P!Pawnshop1976@tcp(fisinventory.db.7722947.acb.hostedresource.net:3306)/fisinventory")
 	if err != nil {
 		//error handling here
 		log.Fatal("connection Error of %v", err)
@@ -37,6 +37,8 @@ func InitDBdefault() (*sql.DB, error) {
 		//error handling here
 		log.Fatal("No Ping of Database %v", err)
 	}
+
+	Db.SetMaxIdleConns(0)
 
 	return Db, err
 }
@@ -49,7 +51,7 @@ func InitDB(Dbdriver *app.Dbdriver) (*sql.DB, error) {
 
 	var err error
 	//db, err = sql.Open("mysql", "fireadmin:FireFamily@1@tcp(165.227.17.104:3306)/Fire_Family")
-	NewDB("fireadmin:FireFamily@1@tcp(165.227.17.104:3306)/Fire_Family")
+	NewDB("fisinventory:P!Pawnshop1976@tcp(fisinventory.db.7722947.acb.hostedresource.net:3306)/fisinventory")
 	if err != nil {
 		//error handling here
 		log.Fatal("connection Error of %v", err)

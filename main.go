@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"os"
 
 	"github.com/cmpickle/web-fire-family/app"
 	"github.com/cmpickle/web-fire-family/models"
@@ -14,8 +15,9 @@ var Dbdriver app.Dbdriver
 var web app.Web
 
 func main() {
-	Dbdriver = Dbdriver.LoadSettings("github.com/cmpickle/web-fire-family/config.yml")
-	web = web.LoadSettings("github.com/cmpickle/web-fire-family/config.yml")
+	pwd, _ := os.Getwd()
+	Dbdriver = Dbdriver.LoadSettings(pwd + "/configtest.yml")
+	web = web.LoadSettings(pwd + "/configtest.yml")
 	var addr string
 	addr = ":" + strconv.Itoa(web.Port)
 	db, err := models.InitDB(&Dbdriver)

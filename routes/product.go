@@ -29,7 +29,7 @@ func getProducts(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var rows *sql.Rows
-	if rows, err = tx.Query("SELECT P.*, I.Quantity FROM Product P LEFT JOIN Inventory I ON P.ProductID = I.ProductID"); err != nil {
+	if rows, err = tx.Query("SELECT P.ProductID, P.ProductName, P.NotificationQuantity, P.Color, P.TrimColor, P.Size, P.Price, P.Dimensions, P.SKU, P.Deleted, I.Quantity FROM Product P LEFT JOIN Inventory I ON P.ProductID = I.ProductID"); err != nil {
 		return
 	}
 
