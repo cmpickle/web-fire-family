@@ -506,11 +506,11 @@ func incrementInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var inventory models.Inventory
-	err = json.NewDecoder(r.Body).Decode(&inventory)
-	if err != nil {
-		fmt.Println(err)
-	}
+	// var inventory models.Inventory
+	// err = json.NewDecoder(r.Body).Decode(&inventory)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 
 	tx, err := db.Begin()
 	if err != nil {
@@ -538,7 +538,7 @@ func incrementInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 	inv := make([]*models.Inventory, 0)
 	for rows.Next() {
 		i := new(models.Inventory)
-		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.Deleted, &i.ProductID, &i.SKU)
+		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.ProductID, &i.Deleted, &i.SKU)
 		if err != nil {
 			//More error handling
 			fmt.Println("2")
@@ -704,11 +704,11 @@ func decrementInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var inventory models.Inventory
-	err = json.NewDecoder(r.Body).Decode(&inventory)
-	if err != nil {
-		fmt.Println(err)
-	}
+	// var inventory models.Inventory
+	// err = json.NewDecoder(r.Body).Decode(&inventory)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 
 	tx, err := db.Begin()
 	if err != nil {
@@ -725,7 +725,7 @@ func decrementInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var rows *sql.Rows
-	if rows, err = tx.Query("SELECT I.*, P.SKU FROM Inventory I INNER JOIN Product P on P.ProductID = I.ProductID WHERE P.SKU = ?", sku); err != nil {
+	if rows, err = tx.Query("SELECT I.InventoryID, I.Quantity, I.DateLastUpdated, I.ProductID, I.Deleted, P.SKU FROM Inventory I INNER JOIN Product P on P.ProductID = I.ProductID WHERE P.SKU = ?", sku); err != nil {
 		fmt.Println("inventory.go - getInventory - tx.Query error selecting inventory id: " + sku)
 		fmt.Println(err)
 		json.NewEncoder(w).Encode(err)
@@ -736,7 +736,7 @@ func decrementInventoryBySKU(w http.ResponseWriter, r *http.Request) {
 	inv := make([]*models.Inventory, 0)
 	for rows.Next() {
 		i := new(models.Inventory)
-		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.Deleted, &i.ProductID, &i.SKU)
+		err := rows.Scan(&i.InventoryID, &i.Quantity, &i.DateLastUpdated, &i.ProductID, &i.Deleted, &i.SKU)
 		if err != nil {
 			//More error handling
 			fmt.Println("2")

@@ -1,7 +1,7 @@
 webport: 8000
 driver: mysql
 host: localhost
-user: test
-pass: letmein
-database: testDB
+user: root
+pass: 
+database: fire_family
 dbport: 3306

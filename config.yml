@@ -1,7 +1,7 @@
 webport: 8000
 driver: mysql
-host: 169.227.17.104
-user: fireadmin
-pass: FireFamily@1
-database: Fire_Family
+host: fisinventory.db.7722947.acb.hostedresource.net
+user: fisinventory
+pass: P!Pawnshop1976
+database: Inventory
 port: 3306

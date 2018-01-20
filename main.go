@@ -21,6 +21,7 @@ func main() {
 	var addr string
 	addr = ":" + strconv.Itoa(web.Port)
 	db, err := models.InitDB(&Dbdriver)
+	db.SetMaxIdleConns(0)
 	if err != nil {
 		fmt.Errorf("Database wasn't initialized!")
 	}

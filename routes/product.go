@@ -155,7 +155,7 @@ func getProductBySKU(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var rows *sql.Rows
-	if rows, err = tx.Query("SELECT P.*, I.Quantity FROM Product P LEFT JOIN Inventory I ON P.ProductID = I.ProductID  WHERE P.SKU = ?", sku); err != nil {
+	if rows, err = tx.Query("SELECT P.ProductID, P.ProductName, P.NotificationQuantity, P.Color, P.TrimColor, P.Size, P.Price, P.Dimensions, P.SKU, P.Deleted, I.Quantity FROM Product P LEFT JOIN Inventory I ON P.ProductID = I.ProductID  WHERE P.SKU = ?", sku); err != nil {
 		fmt.Println("routes.go - getProduct - tx.Query error selecting product sku: " + sku)
 		fmt.Println(err)
 		json.NewEncoder(w).Encode(err)

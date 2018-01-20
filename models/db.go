@@ -26,7 +26,8 @@ func InitDBdefault() (*sql.DB, error) {
 
 	var err error
 	//db, err = sql.Open("mysql", "fireadmin:FireFamily@1@tcp(165.227.17.104:3306)/Fire_Family")
-	NewDB("fisinventory:P!Pawnshop1976@tcp(fisinventory.db.7722947.acb.hostedresource.net:3306)/fisinventory")
+	// NewDB("fisinvenory:P!Pawnshop1976@tcp(fisinventory.db.7722947.acb.hostedresource.net:3306)/fisinventory")
+	NewDB("root:Pawnshop1976@localhost:3306)/fire_family")
 	if err != nil {
 		//error handling here
 		log.Fatal("connection Error of %v", err)
@@ -51,7 +52,8 @@ func InitDB(Dbdriver *app.Dbdriver) (*sql.DB, error) {
 
 	var err error
 	//db, err = sql.Open("mysql", "fireadmin:FireFamily@1@tcp(165.227.17.104:3306)/Fire_Family")
-	NewDB("fisinventory:P!Pawnshop1976@tcp(fisinventory.db.7722947.acb.hostedresource.net:3306)/fisinventory")
+	// NewDB("fisinventory:P!Pawnshop1976@tcp(fisinventory.db.7722947.acb.hostedresource.net:3306)/fisinventory")
+	NewDB("root:Pawnshop1976@tcp(127.0.0.1:3306)/fire_family")
 	if err != nil {
 		//error handling here
 		log.Fatal("connection Error of %v", err)
