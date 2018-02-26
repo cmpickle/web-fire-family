@@ -406,7 +406,9 @@ func deleteProductBySKU(w http.ResponseWriter, r *http.Request) {
 	} else { //All deletion logic goes here because it confirms the find
 		prods[0].Deleted = 1
 		fmt.Println(prods[0].ProductID)
-		_, err := tx.Exec("UPDATE Product SET Deleted = 1 WHERE ProductID = ?", prods[0].ProductID)
+		// _, err := tx.Exec("UPDATE Product SET Deleted = 1 WHERE ProductID = ?", prods[0].ProductID)
+		_, err := tx.Exec("DELETE FROM Product WHERE ProductID = ?", prods[0].ProductID)
+		_, err = tx.Exec("DELETE FROM Inventory WHERE ProductID = ?", prods[0].ProductID)
 		if err != nil {
 			fmt.Println(err)
 		}
